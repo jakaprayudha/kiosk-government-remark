@@ -187,11 +187,27 @@ Dashboard membaca jumlah admin aktif, petugas aktif, aktivitas hari ini (WIB), t
 
 Buka `public/kiosk.php` melalui `/kiosk.php` pada server dengan document root `public`. Aksi **Lihat KIOSK publik** di sidebar dan banner dashboard membuka halaman ini di tab baru tanpa mengganti halaman admin.
 
-UI publik menyediakan delapan menu dengan target sentuh besar, panduan informasi, tombol beranda/bantuan, pilihan teks besar, dan jam WIB. Profil kantor dan rincian layanan resmi belum diisi; halaman tidak menampilkan alamat, biaya, syarat, atau kontak rekaan. Pengajuan, pengaduan digital, cek tiket, dan antrean secara eksplisit belum tersedia. UI ini tidak membaca data privat admin, tidak meminta login, dan tidak menyimpan input atau preferensi di browser.
+UI publik menyediakan delapan menu dengan target sentuh besar, panduan informasi, tombol beranda/bantuan, pilihan teks besar, dan jam WIB. Menu layanan administrasi serta persyaratan dan biaya membaca katalog SQLite. Profil kantor belum diisi; halaman tidak menampilkan alamat, biaya, syarat, atau kontak rekaan. Pengajuan, pengaduan digital, cek tiket, dan antrean secara eksplisit belum tersedia. UI ini tidak membaca data privat admin, tidak meminta login, dan tidak menyimpan input atau preferensi di browser.
 
 Header tanggal dan waktu tetap terlihat saat halaman digulir. Jam menampilkan jam, menit, dan detik WIB sesuai waktu perangkat, diperbarui setiap detik. Menyentuh menu membacakan nama menu dalam bahasa Indonesia melalui Web Speech API sebelum membuka halaman tujuan. Ketersediaan suara bergantung pada dukungan browser, suara bahasa Indonesia di sistem operasi, serta volume perangkat; tidak menggunakan API suara pihak ketiga yang dikonfigurasi aplikasi. Jika suara gagal atau tidak didukung, pemberitahuan ditampilkan dan menu tetap dibuka. Membuka tautan dengan Ctrl/Cmd atau di tab baru tidak menunggu suara.
 
 Setelah 120 detik tanpa aktivitas, dialog konfirmasi ditampilkan selama 20 detik sebelum kembali ke beranda KIOSK. Tombol **Ya, lanjutkan** atau Escape membatalkan hitung mundur. Timeout ini hanya mengatur layar publik dan tidak mengubah sesi login admin di tab lain.
+
+### Katalog layanan dinamis (SQLite)
+
+Jalankan `php bin/migrate.php` untuk menerapkan migrasi `002_service_catalog`. Menu `/kiosk.php?menu=layanan` dan `/kiosk.php?menu=syarat` membaca tabel berikut:
+
+- `service_categories`: nama, slug unik, deskripsi, ikon, urutan, dan status aktif.
+- `services`: kategori, nama, slug, ringkasan, deskripsi, sasaran pemohon, biaya, estimasi waktu, unit, lokasi/kanal, URL resmi, urutan, status publikasi, dan tanggal berlaku.
+- `service_requirements`: dokumen per layanan, keterangan, status wajib/opsional, dan urutan.
+
+Layanan baru secara default berstatus draf (`is_published = 0`). Katalog dan detail hanya menampilkan layanan berstatus publikasi dalam kategori aktif dan rentang tanggal berlaku berdasarkan WIB. `valid_from` dan `valid_until` berformat `YYYY-MM-DD`, batas tanggal termasuk, atau `NULL` bila tanpa batas. Slug kategori dipakai pada filter `kategori`; ID layanan dipakai pada parameter `layanan` untuk detail.
+
+Database awal tidak diisi layanan contoh agar persyaratan/biaya rekaan tidak dianggap resmi. Sebelum CRUD admin tersedia, data resmi hanya dapat diisi oleh pengelola teknis melalui SQLite dengan foreign key aktif. Halaman akan langsung membaca perubahan saat dimuat ulang. CRUD admin tetap menyusul; data ini belum dipakai untuk transaksi. Biaya atau persyaratan kosong ditandai belum diinformasikan, bukan dianggap gratis atau tanpa dokumen. Tautan kanal resmi hanya menerima URL HTTP/HTTPS tanpa kredensial dan dibuka di tab baru.
+
+Validasi katalog tanpa mengubah database aplikasi: `php tests/service-catalog.php`.
+
+Untuk mengisi contoh pengujian secara opsional, jalankan `php bin/seed-demo-services.php`. Perintah ini menambahkan tiga kategori, enam layanan terpublikasi, dan dua persyaratan per layanan (wajib/opsional), semuanya berlabel **DEMO**, bukan informasi resmi. Menjalankan ulang tidak menggandakan atau menimpa data dengan slug yang sudah ada. Data demo tidak boleh digunakan sebagai dasar pengurusan layanan; hapus atau ganti dengan data terverifikasi sebelum penggunaan publik sebenarnya.
 
 ## 10. Tahapan implementasi
 

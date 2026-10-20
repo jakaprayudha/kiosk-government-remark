@@ -2,11 +2,11 @@
 declare(strict_types=1);
 
 $menus = [
-    'layanan' => ['title' => 'Layanan administrasi', 'text' => 'Kenali layanan dan kanal pengurusan yang tepat.', 'icon' => 'document', 'tone' => 'blue', 'status' => 'Panduan umum',
+    'layanan' => ['title' => 'Layanan administrasi', 'text' => 'Kenali layanan dan kanal pengurusan yang tepat.', 'icon' => 'document', 'tone' => 'blue', 'status' => 'Katalog layanan',
         'heading' => 'Kenali layanan sebelum mengurus',
         'intro' => 'Halaman ini menyediakan panduan umum. Daftar layanan resmi kecamatan belum dipublikasikan.',
         'steps' => ['Tentukan kebutuhan administrasi Anda dan tanyakan unit yang berwenang kepada petugas.', 'Pastikan layanan diproses oleh kecamatan atau instansi lain sebelum menyerahkan dokumen.', 'Untuk Dukcapil, bantuan sosial, pajak, atau pembayaran, ikuti kanal resmi instansi terkait.']],
-    'syarat' => ['title' => 'Persyaratan & biaya', 'text' => 'Ketahui hal yang perlu diperiksa sebelum datang.', 'icon' => 'checklist', 'tone' => 'orange', 'status' => 'Panduan umum',
+    'syarat' => ['title' => 'Persyaratan & biaya', 'text' => 'Ketahui hal yang perlu diperiksa sebelum datang.', 'icon' => 'checklist', 'tone' => 'orange', 'status' => 'Katalog layanan',
         'heading' => 'Persiapan yang tepat, proses lebih jelas',
         'intro' => 'Persyaratan, biaya, dan estimasi berbeda untuk setiap layanan. Rincian resmi belum tersedia di KIOSK ini.',
         'steps' => ['Konfirmasikan dokumen wajib, dokumen tambahan, dan kebutuhan salinan kepada petugas.', 'Pastikan informasi biaya dan estimasi waktu berasal dari kanal resmi; jangan menganggap seluruh layanan gratis.', 'Jangan mengunggah atau menyerahkan data identitas kecuali diperlukan dan tujuan penggunaannya jelas.']],
@@ -42,6 +42,53 @@ if (!is_string($selected) || ($selected !== '' && !isset($menus[$selected]))) {
 }
 $page = $selected === '' ? null : $menus[$selected];
 $now = new DateTimeImmutable('now', new DateTimeZone('Asia/Jakarta'));
+$isCatalog = in_array($selected, ['layanan', 'syarat'], true);
+$catalogError = '';
+$catalog = [];
+$categories = [];
+$service = null;
+$requirements = [];
+$category = $_GET['kategori'] ?? '';
+$serviceId = null;
+if ($isCatalog) {
+    if (!is_string($category) || strlen($category) > 200) {
+        http_response_code(400);
+        exit('Filter kategori tidak valid.');
+    }
+    if (isset($_GET['layanan'])) {
+        $serviceId = filter_var($_GET['layanan'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        if ($serviceId === false) {
+            http_response_code(404);
+            exit('Layanan tidak ditemukan.');
+        }
+    }
+    require_once dirname(__DIR__) . '/app/database.php';
+    require_once dirname(__DIR__) . '/app/service-catalog.php';
+    try {
+        $pdo = open_database();
+        $catalog = public_service_catalog($pdo, $now->format('Y-m-d'));
+        foreach ($catalog as $entry) {
+            $categories[$entry['category_slug']] = $entry['category_name'];
+        }
+        if ($serviceId !== null) {
+            $matches = public_service_catalog($pdo, $now->format('Y-m-d'), '', $serviceId);
+            $service = $matches[0] ?? null;
+            if ($service === null) {
+                http_response_code(404);
+                $catalogError = 'Layanan tidak ditemukan atau tidak lagi dipublikasikan.';
+            } else {
+                $requirements = public_service_requirements($pdo, $serviceId);
+                $page['title'] = $service['name'];
+            }
+        } elseif ($category !== '') {
+            $catalog = array_values(array_filter($catalog, static fn(array $entry): bool => $entry['category_slug'] === $category));
+        }
+    } catch (RuntimeException $error) {
+        error_log('Katalog layanan gagal dimuat: ' . $error->getMessage());
+        http_response_code(503);
+        $catalogError = 'Informasi layanan sementara tidak dapat dimuat. Silakan hubungi petugas atau coba kembali nanti.';
+    }
+}
 function kiosk_escape(string $value): string
 {
     return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -94,7 +141,9 @@ function kiosk_icon(string $name): string
                     <?php endforeach; ?>
                 </div>
             </section>
-            <aside class="public-notice"><?= kiosk_icon('help') ?><p><strong>Informasi untuk Anda</strong> KIOSK saat ini menyediakan panduan. Data layanan dan profil kantor resmi belum dipublikasikan. Pengajuan digital, cek tiket, dan antrean belum tersedia.</p></aside>
+            <aside class="public-notice"><?= kiosk_icon('help') ?><p><strong>Informasi untuk Anda</strong> Katalog menampilkan layanan yang dipublikasikan pengelola. Profil kantor, pengajuan digital, cek tiket, dan antrean belum tersedia.</p></aside>
+        <?php elseif ($isCatalog): ?>
+            <?php require dirname(__DIR__) . '/app/views/service-catalog.php'; ?>
         <?php else: ?>
             <a class="back-link" href="kiosk.php" data-menu-voice="Beranda KIOSK"><?= kiosk_icon('home') ?> Kembali ke beranda</a>
             <article class="detail-panel">
