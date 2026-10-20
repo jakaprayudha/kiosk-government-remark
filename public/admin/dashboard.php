@@ -13,6 +13,8 @@ if (!is_string($module) || !isset($navigation[$module])) {
 }
 
 $page = $navigation[$module];
+if ($module === 'submissions') require dirname(__DIR__, 2) . '/app/admin-submissions-controller.php';
+if ($module === 'services') require dirname(__DIR__, 2) . '/app/admin-service-settings.php';
 $stats = null;
 $events = [];
 if ($module === 'dashboard') {
@@ -21,6 +23,8 @@ if ($module === 'dashboard') {
             (SELECT COUNT(*) FROM users WHERE role = 'admin' AND is_active = 1) AS active_admins,
             (SELECT COUNT(*) FROM users WHERE role = 'officer' AND is_active = 1) AS active_officers,
             (SELECT COUNT(*) FROM audit_logs) AS total_events,
+            (SELECT COUNT(*) FROM submissions WHERE expires_at > CURRENT_TIMESTAMP AND status = 'new') AS new_submissions,
+            (SELECT COUNT(*) FROM submissions WHERE expires_at > CURRENT_TIMESTAMP) AS total_submissions,
             (SELECT COUNT(*) FROM audit_logs
              WHERE date(created_at, '+7 hours') = date('now', '+7 hours')) AS today_events"
     )->fetch();
@@ -31,7 +35,8 @@ if ($module === 'dashboard') {
     )->fetchAll();
 }
 $now = new DateTimeImmutable('now', new DateTimeZone('Asia/Jakarta'));
-$actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => 'Reset password'];
+$actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => 'Reset password',
+    'service_settings' => 'Pengaturan layanan', 'submission_status' => 'Status pengajuan'];
 ?>
 <!doctype html>
 <html lang="id">
@@ -63,7 +68,7 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
                    <?= $module === $key ? 'aria-current="page"' : '' ?>>
                     <?= admin_icon($item['icon']) ?>
                     <span><?= escape($item['label']) ?></span>
-                    <?php if ($key !== 'dashboard'): ?><span class="planned-dot" title="Modul belum tersedia"><span class="sr-only">Belum tersedia</span></span><?php endif; ?>
+                    <?php if (!in_array($key, ['dashboard', 'submissions', 'services'], true)): ?><span class="planned-dot" title="Modul belum tersedia"><span class="sr-only">Belum tersedia</span></span><?php endif; ?>
                 </a>
             <?php endforeach; ?>
         </nav>
@@ -101,9 +106,9 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
                 <section class="stats-grid" aria-label="Ringkasan data admin">
                     <?php foreach ([
                         ['label' => 'Admin aktif', 'value' => $stats['active_admins'], 'icon' => 'users', 'tone' => 'blue', 'note' => 'Akun administrator aktif'],
-                        ['label' => 'Petugas aktif', 'value' => $stats['active_officers'], 'icon' => 'users', 'tone' => 'green', 'note' => 'Akun dengan peran petugas'],
+                        ['label' => 'Pengajuan baru', 'value' => $stats['new_submissions'], 'icon' => 'inbox', 'tone' => 'green', 'note' => 'Termasuk simulasi DEMO'],
                         ['label' => 'Aktivitas hari ini', 'value' => $stats['today_events'], 'icon' => 'clock', 'tone' => 'orange', 'note' => 'Dicatat berdasarkan WIB'],
-                        ['label' => 'Total aktivitas', 'value' => $stats['total_events'], 'icon' => 'chart', 'tone' => 'purple', 'note' => 'Seluruh catatan audit tersimpan'],
+                        ['label' => 'Total pengajuan', 'value' => $stats['total_submissions'], 'icon' => 'chart', 'tone' => 'purple', 'note' => 'Dalam retensi, termasuk DEMO'],
                     ] as $stat): ?>
                         <article class="stat-card"><div class="stat-top"><span><?= escape($stat['label']) ?></span><span class="icon-box <?= escape($stat['tone']) ?>"><?= admin_icon($stat['icon']) ?></span></div><strong class="stat-number"><?= number_format((int) $stat['value'], 0, ',', '.') ?></strong><p><?= escape($stat['note']) ?></p></article>
                     <?php endforeach; ?>
@@ -136,9 +141,9 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
                             <li><span class="status-check" aria-hidden="true">✓</span><div><strong>Login & pemulihan akun</strong><p>Autentikasi admin sudah tersedia.</p></div><span class="status-text">Aktif</span></li>
                             <li><span class="status-check" aria-hidden="true">✓</span><div><strong>Database SQLite</strong><p>Terhubung ke penyimpanan lokal.</p></div><span class="status-text">Aktif</span></li>
                             <li><span class="status-pending" aria-hidden="true">·</span><div><strong>Pengelolaan konten</strong><p>Tambah, edit, dan hapus menyusul.</p></div></li>
-                            <li><span class="status-pending" aria-hidden="true">·</span><div><strong>Operasional layanan</strong><p>Pengajuan dan antrean menyusul.</p></div></li>
+                            <li><span class="status-check" aria-hidden="true">✓</span><div><strong>Pengajuan layanan</strong><p>Tiket, foto, dan tindak lanjut tersedia.</p></div></li>
                         </ul>
-                        <div class="notice"><strong>Belum ada statistik layanan</strong><p>Jumlah pengajuan, pengaduan, dan antrean akan ditampilkan setelah modul operasional tersedia. Tidak menggunakan data contoh.</p></div>
+                        <div class="notice"><strong>Pengajuan terhubung SQLite</strong><p>Periksa menu Pengajuan layanan untuk menindaklanjuti tiket. Pengaduan digital dan antrean masih menyusul.</p><a href="dashboard.php?module=submissions">Buka pengajuan →</a></div>
                     </section>
                 </div>
 
@@ -150,6 +155,10 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
                         <?php endforeach; ?>
                     </div>
                 </section>
+            <?php elseif ($module === 'submissions'): ?>
+                <?php require dirname(__DIR__, 2) . '/app/views/admin-submissions.php'; ?>
+            <?php elseif ($module === 'services'): ?>
+                <?php require dirname(__DIR__, 2) . '/app/views/admin-service-settings.php'; ?>
             <?php else: ?>
                 <section class="panel placeholder-panel">
                     <span class="placeholder-icon"><?= admin_icon($page['icon']) ?></span>

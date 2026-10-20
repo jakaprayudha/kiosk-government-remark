@@ -7,6 +7,8 @@ function public_service_catalog(PDO $pdo, string $today, string $category = '', 
                    services.eligibility, services.fee_text, services.estimated_time,
                    services.office_unit, services.service_location, services.official_url,
                    services.valid_from, services.valid_until, services.updated_at,
+                   services.accepts_submissions, services.requires_name, services.requires_contact,
+                   services.camera_enabled, services.retention_days, services.is_demo,
                    service_categories.name AS category_name, service_categories.slug AS category_slug
             FROM services
             JOIN service_categories ON service_categories.id = services.category_id
@@ -31,7 +33,7 @@ function public_service_catalog(PDO $pdo, string $today, string $category = '', 
 function public_service_requirements(PDO $pdo, int $serviceId): array
 {
     $statement = $pdo->prepare(
-        'SELECT name, description, is_required FROM service_requirements
+        'SELECT id, name, description, is_required FROM service_requirements
          WHERE service_id = :service_id ORDER BY sort_order, id'
     );
     $statement->execute(['service_id' => $serviceId]);

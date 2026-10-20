@@ -47,9 +47,10 @@ try {
     $insertService = $pdo->prepare(
         'INSERT INTO services
          (category_id, name, slug, summary, description, eligibility, fee_text,
-          estimated_time, office_unit, service_location, is_published, sort_order)
+          estimated_time, office_unit, service_location, is_published, sort_order,
+          accepts_submissions, camera_enabled, is_demo)
          VALUES (:category_id, :name, :slug, :summary, :description, :eligibility,
-                 :fee_text, :estimated_time, :office_unit, :service_location, 1, :sort_order)
+                 :fee_text, :estimated_time, :office_unit, :service_location, 1, :sort_order, 1, 1, 1)
          ON CONFLICT(slug) DO NOTHING'
     );
     $insertRequirement = $pdo->prepare(

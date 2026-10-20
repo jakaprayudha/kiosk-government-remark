@@ -1,9 +1,14 @@
 const keyboardToggle = document.querySelector('.keyboard-toggle');
 const keyboard = document.querySelector('.touch-keyboard');
-const formInputs = [...document.querySelectorAll('.auth-form input:not([type="hidden"])')];
+const formInputs = [...document.querySelectorAll('.auth-form input:not([type="hidden"]), .submission-form input:not([type="hidden"]):not([type="checkbox"]), .submission-form textarea, .lookup-form input:not([type="hidden"])')];
 let activeInput = null;
 let shifted = false;
 let symbolsMode = false;
+document.addEventListener('kiosk-session-ended', () => {
+    formInputs.forEach((input) => { input.value = ''; });
+    activeInput = null;
+    if (keyboard) keyboard.hidden = true;
+});
 
 function setCustomKeyboardMode(enabled) {
     formInputs.forEach((input) => {
@@ -28,6 +33,12 @@ function insertAtCursor(value) {
     if (!activeInput) return;
     const start = activeInput.selectionStart ?? activeInput.value.length;
     const end = activeInput.selectionEnd ?? start;
+    if (activeInput.maxLength >= 0 && activeInput.value.length - (end - start) + value.length > activeInput.maxLength) {
+        activeInput.setCustomValidity('Batas panjang isian sudah tercapai.');
+        activeInput.reportValidity();
+        activeInput.setCustomValidity('');
+        return;
+    }
     activeInput.setRangeText(value, start, end, 'end');
     activeInput.dispatchEvent(new Event('input', { bubbles: true }));
     activeInput.focus({ preventScroll: true });

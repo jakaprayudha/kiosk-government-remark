@@ -1,0 +1,15 @@
+{
+  "name": "kiosk-government-remark",
+  "private": true,
+  "scripts": {
+    "build": "node resources/js/build.mjs",
+    "test": "node tests/qr.cjs"
+  },
+  "dependencies": {
+    "jsqr": "^1.4.0",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}

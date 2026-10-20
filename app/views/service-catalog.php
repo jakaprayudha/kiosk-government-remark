@@ -3,6 +3,7 @@
     <section class="catalog-empty" role="alert"><span class="menu-icon orange"><?= kiosk_icon('help') ?></span><h1>Informasi layanan tidak tersedia</h1><p><?= kiosk_escape($catalogError) ?></p><a class="footer-button" href="kiosk.php?menu=<?= kiosk_escape($selected) ?>">Kembali ke daftar layanan</a></section>
 <?php elseif ($service !== null): ?>
     <article class="detail-panel service-detail">
+        <?php if ((int) $service['is_demo'] === 1): ?><p class="demo-banner">SIMULASI DEMO — bukan layanan resmi. Jangan gunakan identitas atau dokumen pribadi asli.</p><?php endif; ?>
         <span class="menu-icon blue"><?= kiosk_icon('document') ?></span>
         <span class="detail-category"><?= kiosk_escape($service['category_name']) ?></span>
         <h1><?= kiosk_escape($service['name']) ?></h1>
@@ -32,7 +33,20 @@
         <?php elseif ($service['official_url'] !== ''): ?>
             <p class="public-notice">Tautan kanal resmi belum valid. Silakan konfirmasi kepada petugas.</p>
         <?php endif; ?>
-        <div class="detail-bottom"><?= kiosk_icon('help') ?><p>Halaman ini berisi informasi, bukan bukti pengajuan. Ikuti kanal pengurusan yang tercantum. Untuk layanan instansi lain, KIOSK tidak mengirim pengajuan ke instansi tersebut.</p></div>
+        <section class="service-actions no-print" aria-label="Tindakan layanan">
+            <h2>Apa yang ingin Anda lakukan?</h2>
+            <div class="action-buttons">
+                <button class="footer-button" type="button" data-print>Cetak panduan & persyaratan</button>
+                <button class="footer-button" type="button" id="show-service-qr">QR panduan di HP</button>
+                <?php if ((int) $service['accepts_submissions'] === 1): ?>
+                    <a class="footer-button primary-action" href="kiosk.php?menu=pengajuan&amp;layanan=<?= (int) $service['id'] ?>">Mulai <?= (int) $service['is_demo'] === 1 ? 'simulasi pengajuan' : 'pengajuan' ?></a>
+                <?php else: ?><p>Layanan ini hanya menyediakan informasi. Ikuti kanal pengurusan resmi.</p><?php endif; ?>
+                <a class="footer-button" href="kiosk.php?menu=status">Scan / cek tiket</a>
+            </div>
+            <div id="service-qr-panel" hidden><canvas data-qr="service" aria-label="QR tautan panduan layanan"></canvas><p>Scan menggunakan HP. HP harus dapat mengakses alamat situs ini; alamat lokal .test tidak tersedia dari internet.</p></div>
+            <p class="device-message" role="status"></p>
+        </section>
+        <div class="detail-bottom"><?= kiosk_icon('help') ?><p>Panduan ini bukan bukti pengajuan. Pengajuan baru tersimpan setelah Anda menerima kode tiket. KIOSK tidak mengirim pengajuan ke instansi eksternal.</p></div>
     </article>
 <?php else: ?>
     <section class="catalog-heading"><span class="eyebrow">INFORMASI LAYANAN KECAMATAN</span><h1><?= kiosk_escape($menus[$selected]['title']) ?></h1><p>Pilih layanan untuk membaca persyaratan, biaya, estimasi, dan lokasi pengurusan.</p></section>

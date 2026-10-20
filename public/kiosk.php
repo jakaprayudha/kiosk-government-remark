@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once dirname(__DIR__) . '/app/public-session.php';
 
 $menus = [
     'layanan' => ['title' => 'Layanan administrasi', 'text' => 'Kenali layanan dan kanal pengurusan yang tepat.', 'icon' => 'document', 'tone' => 'blue', 'status' => 'Katalog layanan',
@@ -35,6 +36,9 @@ $menus = [
         'intro' => 'Gunakan layar sentuh, mouse, atau keyboard. Anda tidak perlu login untuk membaca informasi publik.',
         'steps' => ['Sentuh salah satu menu di beranda. Pada keyboard, gunakan Tab untuk berpindah dan Enter untuk membuka.', 'Gunakan tombol Teks besar untuk memperbesar tulisan. Tombol Beranda mengembalikan Anda ke menu utama.', 'Jika perlu pendampingan, temui petugas di lokasi. KIOSK belum memiliki tombol pemanggilan petugas. Setelah tidak aktif, layar akan kembali ke beranda.']],
 ];
+$menus['pengajuan']['status'] = 'Tersedia sesuai layanan';
+$menus['status']['status'] = 'Scan tiket + PIN';
+$menus['bukti'] = ['title' => 'Bukti pengajuan', 'text' => '', 'icon' => 'document', 'tone' => 'blue', 'status' => ''];
 $selected = $_GET['menu'] ?? '';
 if (!is_string($selected) || ($selected !== '' && !isset($menus[$selected]))) {
     http_response_code(404);
@@ -42,6 +46,8 @@ if (!is_string($selected) || ($selected !== '' && !isset($menus[$selected]))) {
 }
 $page = $selected === '' ? null : $menus[$selected];
 $now = new DateTimeImmutable('now', new DateTimeZone('Asia/Jakarta'));
+$isTransaction = in_array($selected, ['pengajuan', 'status', 'bukti'], true);
+if ($isTransaction) require dirname(__DIR__) . '/app/public-submissions-controller.php';
 $isCatalog = in_array($selected, ['layanan', 'syarat'], true);
 $catalogError = '';
 $catalog = [];
@@ -116,9 +122,12 @@ function kiosk_icon(string $name): string
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f4f7fc">
+    <meta name="public-csrf" content="<?= kiosk_escape($_SESSION['csrf']) ?>">
     <title><?= $page ? kiosk_escape($page['title']) . ' — ' : '' ?>KIOSK Publik Kecamatan</title>
     <link rel="stylesheet" href="assets/css/kiosk.css">
     <script src="assets/js/kiosk.js" defer></script>
+    <script src="assets/js/service-devices.js" defer></script>
+    <?php if ($isTransaction): ?><script src="assets/js/auth.js" defer></script><?php endif; ?>
 </head>
 <body>
     <a class="skip-link" href="#konten-kiosk">Lewati ke konten utama</a>
@@ -137,13 +146,16 @@ function kiosk_icon(string $name): string
                 <div class="section-heading"><h2 id="menu-title">Pilih kebutuhan Anda</h2><span>Mulai dengan menyentuh salah satu menu</span></div>
                 <div class="menu-grid">
                     <?php foreach ($menus as $key => $item): ?>
-                        <a class="menu-card" href="kiosk.php?menu=<?= kiosk_escape($key) ?>" data-menu-voice="<?= kiosk_escape($item['title']) ?>"><span class="card-top"><span class="menu-icon <?= kiosk_escape($item['tone']) ?>"><?= kiosk_icon($item['icon']) ?></span><span class="menu-status"><?= kiosk_escape($item['status']) ?></span></span><h3><?= kiosk_escape($item['title']) ?></h3><p><?= kiosk_escape($item['text']) ?></p><span class="card-action">Buka informasi <?= kiosk_icon('arrow') ?></span></a>
+                        <?php if ($key === 'bukti') continue; ?>
+                        <a class="menu-card" href="kiosk.php?menu=<?= $key === 'pengajuan' ? 'layanan' : kiosk_escape($key) ?>" data-menu-voice="<?= kiosk_escape($item['title']) ?>"><span class="card-top"><span class="menu-icon <?= kiosk_escape($item['tone']) ?>"><?= kiosk_icon($item['icon']) ?></span><span class="menu-status"><?= kiosk_escape($item['status']) ?></span></span><h3><?= kiosk_escape($item['title']) ?></h3><p><?= kiosk_escape($item['text']) ?></p><span class="card-action">Buka informasi <?= kiosk_icon('arrow') ?></span></a>
                     <?php endforeach; ?>
                 </div>
             </section>
-            <aside class="public-notice"><?= kiosk_icon('help') ?><p><strong>Informasi untuk Anda</strong> Katalog menampilkan layanan yang dipublikasikan pengelola. Profil kantor, pengajuan digital, cek tiket, dan antrean belum tersedia.</p></aside>
+            <aside class="public-notice"><?= kiosk_icon('help') ?><p><strong>Informasi untuk Anda</strong> Katalog menampilkan layanan yang dipublikasikan pengelola. Pengajuan tersedia sesuai pengaturan layanan; layanan DEMO hanya untuk simulasi. Profil kantor dan antrean belum tersedia.</p></aside>
         <?php elseif ($isCatalog): ?>
             <?php require dirname(__DIR__) . '/app/views/service-catalog.php'; ?>
+        <?php elseif ($isTransaction): ?>
+            <?php require dirname(__DIR__) . '/app/views/public-submissions.php'; ?>
         <?php else: ?>
             <a class="back-link" href="kiosk.php" data-menu-voice="Beranda KIOSK"><?= kiosk_icon('home') ?> Kembali ke beranda</a>
             <article class="detail-panel">
@@ -164,6 +176,7 @@ function kiosk_icon(string $name): string
         <a class="footer-button" href="kiosk.php" data-menu-voice="Beranda KIOSK"><?= kiosk_icon('home') ?> Beranda</a>
         <button class="footer-button" id="text-size-toggle" type="button" aria-pressed="false"><span aria-hidden="true">A+</span> Teks besar</button>
         <a class="footer-button" href="kiosk.php?menu=bantuan" data-menu-voice="Bantuan penggunaan"><?= kiosk_icon('help') ?> Bantuan</a>
+        <form method="post" action="end-session.php" class="end-session-form"><input type="hidden" name="csrf" value="<?= kiosk_escape($_SESSION['csrf']) ?>"><button class="footer-button" type="submit">Selesai & bersihkan sesi</button></form>
         <span class="footer-note">Jaga kerahasiaan data pribadi Anda.</span>
     </footer>
     <p class="speech-status" id="speech-status" role="status" aria-live="polite"></p>
@@ -171,7 +184,7 @@ function kiosk_icon(string $name): string
         <span class="dialog-icon"><?= kiosk_icon('help') ?></span>
         <h2 id="idle-title">Masih menggunakan KIOSK?</h2>
         <p>Layar akan kembali ke beranda dalam <span id="idle-countdown">20</span> detik karena tidak ada aktivitas.</p>
-        <div class="dialog-actions"><button id="continue-session" type="button">Ya, lanjutkan</button><a href="kiosk.php">Kembali ke beranda</a></div>
+        <div class="dialog-actions"><button id="continue-session" type="button">Ya, lanjutkan</button><button id="end-session" type="button">Akhiri sesi</button></div>
     </dialog>
 </body>
 </html>

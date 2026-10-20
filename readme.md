@@ -181,17 +181,17 @@ Halaman reset password meminta username dan kode pemulihan. Formulir admin mendu
 
 Setelah login, admin membuka `public/admin/dashboard.php`. Panel ini dirancang untuk laptop/desktop dengan sidebar, tabel aktivitas, serta navigasi keyboard dan mouse; tidak memerlukan touchscreen. Di layar kecil, tombol menu membuka sidebar.
 
-Dashboard membaca jumlah admin aktif, petugas aktif, aktivitas hari ini (WIB), total audit, dan tujuh aktivitas terakhir langsung dari SQLite. Statistik layanan belum ditampilkan karena modul operasional belum diimplementasikan. Menu konten KIOSK, operasional, akun, laporan, audit lengkap, dan pengaturan membuka halaman penjelasan dengan status **belum tersedia**. Tahap ini belum menyediakan tambah, edit, atau hapus data (CRUD).
+Dashboard membaca jumlah admin aktif, pengajuan baru, total pengajuan dalam retensi (termasuk DEMO), aktivitas hari ini (WIB), dan tujuh aktivitas audit terakhir langsung dari SQLite. Menu **Pengajuan layanan** aktif untuk pemeriksaan dan tindak lanjut; **Layanan & persyaratan** menyediakan pengaturan transaksi per layanan. CRUD konten kategori/layanan/persyaratan, pengaduan, antrean, akun, laporan, audit lengkap, dan pengaturan umum masih menyusul.
 
 ### UI KIOSK publik
 
 Buka `public/kiosk.php` melalui `/kiosk.php` pada server dengan document root `public`. Aksi **Lihat KIOSK publik** di sidebar dan banner dashboard membuka halaman ini di tab baru tanpa mengganti halaman admin.
 
-UI publik menyediakan delapan menu dengan target sentuh besar, panduan informasi, tombol beranda/bantuan, pilihan teks besar, dan jam WIB. Menu layanan administrasi serta persyaratan dan biaya membaca katalog SQLite. Profil kantor belum diisi; halaman tidak menampilkan alamat, biaya, syarat, atau kontak rekaan. Pengajuan, pengaduan digital, cek tiket, dan antrean secara eksplisit belum tersedia. UI ini tidak membaca data privat admin, tidak meminta login, dan tidak menyimpan input atau preferensi di browser.
+UI publik menyediakan delapan menu dengan target sentuh besar, panduan informasi, tombol beranda/bantuan, pilihan teks besar, dan jam WIB. Menu layanan administrasi serta persyaratan dan biaya membaca katalog SQLite. Pengajuan tersedia untuk layanan yang diaktifkan pengelola, dengan cek tiket + PIN. Layanan DEMO selalu diberi tanda simulasi. Profil kantor, pengaduan digital, dan antrean belum tersedia. Publik tidak perlu login. Formulir/foto berada sementara di memori halaman sampai dikirim; tidak memakai localStorage/IndexedDB untuk data pemohon.
 
 Header tanggal dan waktu tetap terlihat saat halaman digulir. Jam menampilkan jam, menit, dan detik WIB sesuai waktu perangkat, diperbarui setiap detik. Menyentuh menu membacakan nama menu dalam bahasa Indonesia melalui Web Speech API sebelum membuka halaman tujuan. Ketersediaan suara bergantung pada dukungan browser, suara bahasa Indonesia di sistem operasi, serta volume perangkat; tidak menggunakan API suara pihak ketiga yang dikonfigurasi aplikasi. Jika suara gagal atau tidak didukung, pemberitahuan ditampilkan dan menu tetap dibuka. Membuka tautan dengan Ctrl/Cmd atau di tab baru tidak menunggu suara.
 
-Setelah 120 detik tanpa aktivitas, dialog konfirmasi ditampilkan selama 20 detik sebelum kembali ke beranda KIOSK. Tombol **Ya, lanjutkan** atau Escape membatalkan hitung mundur. Timeout ini hanya mengatur layar publik dan tidak mengubah sesi login admin di tab lain.
+Setelah 120 detik tanpa aktivitas, dialog konfirmasi ditampilkan selama 20 detik sebelum membersihkan sesi publik dan kembali ke beranda KIOSK. Tombol **Ya, lanjutkan** atau Escape membatalkan hitung mundur. Tombol **Selesai & bersihkan sesi** mengakhiri sesi secara manual. Kamera dihentikan, input/foto/tiket dibersihkan, dan server membatalkan akses bukti melalui sesi tersebut. Heartbeat mempertahankan sesi selama pengguna aktif mengisi formulir; tanpa permintaan selama 140 detik, server membatalkan sesi sebagai pengaman. Sesi publik memakai cookie terpisah dari admin; beberapa tab publik pada browser yang sama berbagi sesi. Jangan menyiapkan pengguna berbeda dalam tab publik paralel pada browser yang sama.
 
 ### Katalog layanan dinamis (SQLite)
 
@@ -203,11 +203,38 @@ Jalankan `php bin/migrate.php` untuk menerapkan migrasi `002_service_catalog`. M
 
 Layanan baru secara default berstatus draf (`is_published = 0`). Katalog dan detail hanya menampilkan layanan berstatus publikasi dalam kategori aktif dan rentang tanggal berlaku berdasarkan WIB. `valid_from` dan `valid_until` berformat `YYYY-MM-DD`, batas tanggal termasuk, atau `NULL` bila tanpa batas. Slug kategori dipakai pada filter `kategori`; ID layanan dipakai pada parameter `layanan` untuk detail.
 
-Database awal tidak diisi layanan contoh agar persyaratan/biaya rekaan tidak dianggap resmi. Sebelum CRUD admin tersedia, data resmi hanya dapat diisi oleh pengelola teknis melalui SQLite dengan foreign key aktif. Halaman akan langsung membaca perubahan saat dimuat ulang. CRUD admin tetap menyusul; data ini belum dipakai untuk transaksi. Biaya atau persyaratan kosong ditandai belum diinformasikan, bukan dianggap gratis atau tanpa dokumen. Tautan kanal resmi hanya menerima URL HTTP/HTTPS tanpa kredensial dan dibuka di tab baru.
+Database awal tidak diisi layanan contoh agar persyaratan/biaya rekaan tidak dianggap resmi. Sebelum CRUD admin tersedia, konten resmi hanya dapat diisi oleh pengelola teknis melalui SQLite dengan foreign key aktif. Halaman langsung membaca perubahan saat dimuat ulang. Pengaturan transaksi tersedia di admin; CRUD konten tetap menyusul. Biaya atau persyaratan kosong ditandai belum diinformasikan, bukan dianggap gratis atau tanpa dokumen. Tautan kanal resmi hanya menerima URL HTTP/HTTPS tanpa kredensial dan dibuka di tab baru.
 
 Validasi katalog tanpa mengubah database aplikasi: `php tests/service-catalog.php`.
 
 Untuk mengisi contoh pengujian secara opsional, jalankan `php bin/seed-demo-services.php`. Perintah ini menambahkan tiga kategori, enam layanan terpublikasi, dan dua persyaratan per layanan (wajib/opsional), semuanya berlabel **DEMO**, bukan informasi resmi. Menjalankan ulang tidak menggandakan atau menimpa data dengan slug yang sudah ada. Data demo tidak boleh digunakan sebagai dasar pengurusan layanan; hapus atau ganti dengan data terverifikasi sebelum penggunaan publik sebenarnya.
+
+### Pengajuan, kamera, QR, printer, dan tindak lanjut
+
+Terapkan `php bin/migrate.php` untuk migrasi `003_service_submissions`. PHP membutuhkan `PDO_SQLite`, `fileinfo`, dan `gd` (foto direkode JPEG untuk membuang metadata). Pastikan server dapat menulis `database/` dan `storage/uploads/`, tetapi document root hanya `public/`. Jangan sajikan direktori proyek melalui web.
+
+Alur masyarakat:
+
+1. Detail layanan → **Cetak panduan & persyaratan** atau **QR panduan di HP**. QR berisi alamat detail situs; HP harus dapat mengakses alamat tersebut. Domain lokal `.test` tidak otomatis tersedia dari internet.
+2. **Mulai pengajuan** (hanya bila diaktifkan) → baca privasi dan setujui penggunaan data → isi uraian dan data minimum → ambil foto bila diperlukan.
+3. Kamera dibuka atas tindakan pengguna melalui HTTPS/localhost, dengan izin perangkat. Pilih dokumen, ambil foto, periksa pratinjau, lalu **Gunakan foto**, **Ulangi**, atau **Hapus foto**. Maksimal 3 foto, 2 MB per foto; unggahan JPEG/PNG maksimal 2500 piksel per sisi dan 4 megapiksel. Foto dipetakan ke persyaratan layanan dan tetap opsional; dokumen wajib yang tidak difoto harus dibawa ke petugas. Kamera tidak memverifikasi keaslian dokumen dan tidak mengambil foto wajah otomatis.
+4. **Periksa ringkasan** → periksa isian/foto → centang konfirmasi → kirim. Transaksi SQLite menyimpan tiket, riwayat awal, dan metadata foto. Kunci formulir unik mencegah tiket ganda saat POST diulang. Kegagalan tidak menampilkan bukti berhasil.
+5. Bukti menampilkan kode tiket acak, PIN 6 digit, QR, layanan, tanggal, dan status. QR memakai format `KIOSK:V1:<20 karakter hex>` dan tidak menyertakan PIN/data pribadi. PIN disimpan sebagai hash di database; simpan cetakan secara pribadi karena PIN tercetak di bukti.
+6. **Cetak / cetak ulang bukti** membuka dialog cetak browser tanpa membuat pengajuan baru. Aplikasi tidak dapat menjamin kertas tercetak; jika printer gagal, kode tiket tetap tersimpan. Catat tiket/PIN sebelum mengakhiri sesi.
+7. **Scan / cek tiket** menerima scanner USB yang bertindak sebagai keyboard (fokus kolom kode, scanner mengirim Enter), kamera QR, atau input manual. Scanner hanya menerima format tiket aplikasi, bukan menavigasi URL sembarang. PIN tetap wajib; hasil hanya memuat status dan riwayat/catatan publik, tanpa nama/kontak, dokumen, atau catatan internal. Batas percobaan per IP: 10 lookup / 15 menit; pengajuan 5 / 15 menit (termasuk simulasi). Perangkat yang berbagi IP turut berbagi batas.
+
+Admin:
+
+- **Pengajuan layanan**: daftar berpaginasi, filter status, detail, foto privat melalui endpoint berautentikasi, dan riwayat. Catatan publik serta internal terpisah.
+- Transisi: Baru → Ditinjau → Diproses → Selesai; dari Ditinjau/Diproses dapat meminta informasi; Ditolak dan Perlu informasi wajib alasan publik. Status akhir tidak dibuka ulang. Konflik pembaruan ditolak dan perubahan dicatat dalam audit.
+- **Layanan & persyaratan**: pengaturan `accepts_submissions`, `requires_name`, `requires_contact`, `camera_enabled`, `retention_days` (1–365 hari). Default layanan baru: informasi saja, kamera mati, nama/kontak opsional, retensi 30 hari. Aktifkan transaksi hanya untuk layanan berwenang. Retensi baru berlaku pada pengajuan berikutnya; snapshot nama layanan dan `is_demo` tersimpan pada tiket.
+- Enam layanan dummy yang telah di-seed diaktifkan untuk simulasi oleh migrasi. Gunakan data/dokumen contoh saja. Tidak ada pengajuan dikirim ke instansi eksternal.
+
+Lampiran disimpan dengan nama acak di `storage/uploads/` (privat, di luar web root). Setelah batas retensi, pengajuan/lampiran tidak dapat diakses lagi. Jadwalkan **setiap hari** `php bin/purge-submissions.php` untuk menghapus berkas, pengajuan, dan riwayat kedaluwarsa. Kegagalan cleanup menghasilkan exit nonzero untuk monitoring. Backup harus memiliki aturan retensi/penghapusan sendiri. Sebelum produksi, instansi wajib menyetujui dasar pemrosesan, retensi, dan prosedur operasional.
+
+QR dibuat dan dipindai secara lokal memakai `qrcode` dan `jsQR`; tidak mengirim dokumen ke layanan QR eksternal. Bundle tersedia di `public/assets/js/service-devices.js`. Untuk memperbarui dari sumber `resources/js/service-devices.js`: `npm ci && npm run build`. Build menyertakan lisensi dependency pada `public/assets/js/service-devices.LICENSE.txt`; distribusikan bersama bundle. Printer browser biasa menggunakan dialog, bukan silent-print; thermal/silent-print dan scanner non-keyboard memerlukan konfigurasi perangkat/driver di luar aplikasi.
+
+Uji regresi: `php tests/service-catalog.php`, `php tests/submissions.php`, dan `npm test` (129 variasi QR tiket). Uji penerimaan perangkat nyata tetap diperlukan untuk izin kamera, fokus scanner USB, ukuran kertas/driver printer, suara, dan domain yang dapat dijangkau HP.
 
 ## 10. Tahapan implementasi
 
