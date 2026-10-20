@@ -177,6 +177,12 @@ Buka `http://localhost:8000`, lalu pilih **Login Admin**. Gunakan `php bin/migra
 
 Halaman reset password meminta username dan kode pemulihan. Formulir admin mendukung keyboard perangkat saat input disentuh serta menyediakan tombol **Keyboard layar sentuh** sebagai alternatif. Pada perangkat kiosk, aktifkan juga keyboard virtual di sistem operasi/browser kiosk untuk pengalaman input native. Situs produksi wajib disajikan melalui HTTPS agar cookie sesi menggunakan atribut `Secure`.
 
+### Dashboard dan navigasi admin
+
+Setelah login, admin membuka `public/admin/dashboard.php`. Panel ini dirancang untuk laptop/desktop dengan sidebar, tabel aktivitas, serta navigasi keyboard dan mouse; tidak memerlukan touchscreen. Di layar kecil, tombol menu membuka sidebar.
+
+Dashboard membaca jumlah admin aktif, petugas aktif, aktivitas hari ini (WIB), total audit, dan tujuh aktivitas terakhir langsung dari SQLite. Statistik layanan belum ditampilkan karena modul operasional belum diimplementasikan. Menu konten KIOSK, operasional, akun, laporan, audit lengkap, dan pengaturan membuka halaman penjelasan dengan status **belum tersedia**. Tahap ini belum menyediakan tambah, edit, atau hapus data (CRUD).
+
 ## 10. Tahapan implementasi
 
 1. **Fondasi:** skema/migrasi SQLite, login admin, kontrol peran, audit log, dan pengelolaan profil kantor.
