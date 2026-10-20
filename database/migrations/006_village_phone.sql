@@ -1,0 +1,1 @@
+ALTER TABLE office_villages ADD COLUMN phone TEXT NOT NULL DEFAULT '';

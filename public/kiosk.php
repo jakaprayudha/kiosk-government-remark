@@ -11,7 +11,7 @@ $menus = [
         'heading' => 'Persiapan yang tepat, proses lebih jelas',
         'intro' => 'Persyaratan, biaya, dan estimasi berbeda untuk setiap layanan. Rincian resmi belum tersedia di KIOSK ini.',
         'steps' => ['Konfirmasikan dokumen wajib, dokumen tambahan, dan kebutuhan salinan kepada petugas.', 'Pastikan informasi biaya dan estimasi waktu berasal dari kanal resmi; jangan menganggap seluruh layanan gratis.', 'Jangan mengunggah atau menyerahkan data identitas kecuali diperlukan dan tujuan penggunaannya jelas.']],
-    'kantor' => ['title' => 'Informasi kecamatan', 'text' => 'Informasi kantor, jam layanan, dan kontak resmi.', 'icon' => 'building', 'tone' => 'teal', 'status' => 'Menunggu data resmi',
+    'kantor' => ['title' => 'Informasi kecamatan', 'text' => 'Profil kantor, peta titik desa, dan informasi wilayah.', 'icon' => 'building', 'tone' => 'teal', 'status' => 'Profil & peta desa',
         'heading' => 'Kenali kantor kecamatan Anda',
         'intro' => 'Profil kantor belum diisi oleh pengelola. Alamat, jam layanan, nomor telepon, dan peta belum tersedia.',
         'steps' => ['Periksa papan informasi resmi di kantor untuk jam dan lokasi layanan.', 'Hubungi petugas di lokasi untuk memastikan unit atau loket yang menangani kebutuhan Anda.', 'Kontak dan kanal resmi akan ditampilkan setelah data kecamatan dipublikasikan.']],
@@ -60,6 +60,20 @@ if ($selected === 'syarat') {
         error_log('Panduan dokumen gagal dimuat: ' . get_class($error));
         http_response_code(503);
         $guidesError = 'Persyaratan dan biaya belum dapat dimuat. Silakan hubungi petugas.';
+    }
+}
+$office = null;
+$officeError = '';
+if ($selected === 'kantor') {
+    require_once dirname(__DIR__) . '/app/database.php';
+    require_once dirname(__DIR__) . '/app/office.php';
+    require_once dirname(__DIR__) . '/app/service-catalog.php';
+    try {
+        $office = public_office(open_database(), 'sei-rampah');
+    } catch (RuntimeException $error) {
+        error_log('Profil kecamatan gagal dimuat: ' . get_class($error));
+        http_response_code(503);
+        $officeError = 'Profil dan desa belum dapat dimuat dari database. Hubungi petugas.';
     }
 }
 $catalogError = '';
@@ -137,9 +151,15 @@ function kiosk_icon(string $name): string
     <meta name="theme-color" content="#f4f7fc">
     <meta name="public-csrf" content="<?= kiosk_escape($_SESSION['csrf']) ?>">
     <title><?= $page ? kiosk_escape($page['title']) . ' — ' : '' ?>KIOSK Publik Kecamatan</title>
+    <?php if ($selected === 'kantor' && $office !== null): ?>
+        <link rel="stylesheet" href="assets/css/leaflet.css">
+    <?php endif; ?>
     <link rel="stylesheet" href="assets/css/kiosk.css?v=<?= filemtime(__DIR__ . '/assets/css/kiosk.css') ?>">
     <script src="assets/js/kiosk.js?v=<?= filemtime(__DIR__ . '/assets/js/kiosk.js') ?>" defer></script>
     <script src="assets/js/service-devices.js" defer></script>
+    <?php if ($selected === 'kantor' && $office !== null): ?>
+        <script src="assets/js/office-map.js?v=<?= filemtime(__DIR__ . '/assets/js/office-map.js') ?>" defer></script>
+    <?php endif; ?>
     <?php if ($isTransaction): ?><script src="assets/js/auth.js" defer></script><?php endif; ?>
 </head>
 <body>
@@ -164,9 +184,11 @@ function kiosk_icon(string $name): string
                     <?php endforeach; ?>
                 </div>
             </section>
-            <aside class="public-notice"><?= kiosk_icon('help') ?><p><strong>Informasi untuk Anda</strong> Katalog menampilkan layanan yang dipublikasikan pengelola. Pengajuan tersedia sesuai pengaturan layanan; layanan DEMO hanya untuk simulasi. Profil kantor dan antrean belum tersedia.</p></aside>
+            <aside class="public-notice"><?= kiosk_icon('help') ?><p><strong>Informasi untuk Anda</strong> Katalog menampilkan layanan yang dipublikasikan pengelola. Pengajuan tersedia sesuai pengaturan layanan; data DEMO hanya untuk simulasi. Informasi kecamatan menyediakan profil dan peta desa sesuai data yang dipublikasikan. Antrean belum tersedia.</p></aside>
         <?php elseif ($selected === 'syarat'): ?>
             <?php require dirname(__DIR__) . '/app/views/public-document-guides.php'; ?>
+        <?php elseif ($selected === 'kantor'): ?>
+            <?php require dirname(__DIR__) . '/app/views/public-office.php'; ?>
         <?php elseif ($isCatalog): ?>
             <?php require dirname(__DIR__) . '/app/views/service-catalog.php'; ?>
         <?php elseif ($isTransaction): ?>

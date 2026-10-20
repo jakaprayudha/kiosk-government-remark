@@ -6,6 +6,7 @@
     "test": "node tests/qr.cjs"
   },
   "dependencies": {
+    "leaflet": "^1.9.4",
     "jsqr": "^1.4.0",
     "qrcode": "^1.5.4"
   },

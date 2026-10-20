@@ -1,5 +1,5 @@
 import { build } from 'esbuild';
-import { readFile, readdir, writeFile } from 'node:fs/promises';
+import { cp, readFile, readdir, writeFile } from 'node:fs/promises';
 
 const result = await build({
     entryPoints: ['resources/js/service-devices.js'],
@@ -23,3 +23,14 @@ for (const directory of [...packages].sort()) {
     notices.push(`${name} ${version}\n${(await Promise.all(licenses.sort().map((file) => readFile(`${directory}/${file}`, 'utf8')))).join('\n')}`);
 }
 await writeFile('public/assets/js/service-devices.LICENSE.txt', notices.join('\n\n========================================\n\n'));
+
+await build({
+    entryPoints: ['resources/js/office-map.js'],
+    bundle: true,
+    minify: true,
+    legalComments: 'eof',
+    outfile: 'public/assets/js/office-map.js',
+});
+await cp('node_modules/leaflet/dist/leaflet.css', 'public/assets/css/leaflet.css');
+await cp('node_modules/leaflet/dist/images', 'public/assets/css/images', { recursive: true });
+await cp('node_modules/leaflet/LICENSE', 'public/assets/js/office-map.LICENSE.txt');
