@@ -68,7 +68,7 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
             <?php endforeach; ?>
         </nav>
         <div class="sidebar-bottom">
-            <a class="nav-link" href="../index.php"><?= admin_icon('external') ?><span>Lihat KIOSK publik</span></a>
+            <a class="nav-link" href="../kiosk.php" target="_blank" rel="noopener noreferrer"><?= admin_icon('external') ?><span>Lihat KIOSK publik<span class="sr-only"> (tab baru)</span></span></a>
             <form method="post" action="logout.php">
                 <input type="hidden" name="csrf_token" value="<?= escape(csrf_token()) ?>">
                 <button class="nav-link logout-button" type="submit"><?= admin_icon('logout') ?><span>Keluar dari akun</span></button>
@@ -94,7 +94,7 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
 
             <?php if ($module === 'dashboard'): ?>
                 <section class="welcome-banner">
-                    <div><span class="banner-label">RUANG KERJA ADMIN</span><h2>Selamat datang, <?= escape($admin['name']) ?>.</h2><p>Panel pengelola untuk bekerja nyaman melalui laptop, keyboard, dan mouse.</p><a class="button button-white" href="../index.php">Lihat landing page <?= admin_icon('external') ?></a></div>
+                    <div><span class="banner-label">RUANG KERJA ADMIN</span><h2>Selamat datang, <?= escape($admin['name']) ?>.</h2><p>Panel pengelola untuk bekerja nyaman melalui laptop, keyboard, dan mouse.</p><a class="button button-white" href="../kiosk.php" target="_blank" rel="noopener noreferrer">Lihat KIOSK publik <span class="sr-only">(tab baru)</span><?= admin_icon('external') ?></a></div>
                     <div class="banner-art" aria-hidden="true"><?= admin_icon('building') ?><span>KIOSK KECAMATAN</span></div>
                 </section>
 

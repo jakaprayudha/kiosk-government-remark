@@ -183,6 +183,16 @@ Setelah login, admin membuka `public/admin/dashboard.php`. Panel ini dirancang u
 
 Dashboard membaca jumlah admin aktif, petugas aktif, aktivitas hari ini (WIB), total audit, dan tujuh aktivitas terakhir langsung dari SQLite. Statistik layanan belum ditampilkan karena modul operasional belum diimplementasikan. Menu konten KIOSK, operasional, akun, laporan, audit lengkap, dan pengaturan membuka halaman penjelasan dengan status **belum tersedia**. Tahap ini belum menyediakan tambah, edit, atau hapus data (CRUD).
 
+### UI KIOSK publik
+
+Buka `public/kiosk.php` melalui `/kiosk.php` pada server dengan document root `public`. Aksi **Lihat KIOSK publik** di sidebar dan banner dashboard membuka halaman ini di tab baru tanpa mengganti halaman admin.
+
+UI publik menyediakan delapan menu dengan target sentuh besar, panduan informasi, tombol beranda/bantuan, pilihan teks besar, dan jam WIB. Profil kantor dan rincian layanan resmi belum diisi; halaman tidak menampilkan alamat, biaya, syarat, atau kontak rekaan. Pengajuan, pengaduan digital, cek tiket, dan antrean secara eksplisit belum tersedia. UI ini tidak membaca data privat admin, tidak meminta login, dan tidak menyimpan input atau preferensi di browser.
+
+Header tanggal dan waktu tetap terlihat saat halaman digulir. Jam menampilkan jam, menit, dan detik WIB sesuai waktu perangkat, diperbarui setiap detik. Menyentuh menu membacakan nama menu dalam bahasa Indonesia melalui Web Speech API sebelum membuka halaman tujuan. Ketersediaan suara bergantung pada dukungan browser, suara bahasa Indonesia di sistem operasi, serta volume perangkat; tidak menggunakan API suara pihak ketiga yang dikonfigurasi aplikasi. Jika suara gagal atau tidak didukung, pemberitahuan ditampilkan dan menu tetap dibuka. Membuka tautan dengan Ctrl/Cmd atau di tab baru tidak menunggu suara.
+
+Setelah 120 detik tanpa aktivitas, dialog konfirmasi ditampilkan selama 20 detik sebelum kembali ke beranda KIOSK. Tombol **Ya, lanjutkan** atau Escape membatalkan hitung mundur. Timeout ini hanya mengatur layar publik dan tidak mengubah sesi login admin di tab lain.
+
 ## 10. Tahapan implementasi
 
 1. **Fondasi:** skema/migrasi SQLite, login admin, kontrol peran, audit log, dan pengelolaan profil kantor.
