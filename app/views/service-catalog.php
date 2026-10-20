@@ -64,7 +64,12 @@
     <?php else: ?>
         <div class="catalog-grid">
             <?php foreach ($catalog as $entry): ?>
-                <a class="menu-card" href="kiosk.php?menu=<?= kiosk_escape($selected) ?>&amp;layanan=<?= (int) $entry['id'] ?>" data-menu-voice="<?= kiosk_escape($entry['name']) ?>"><span class="card-top"><span class="menu-icon blue"><?= kiosk_icon('document') ?></span><span class="menu-status"><?= kiosk_escape($entry['category_name']) ?></span></span><h2><?= kiosk_escape($entry['name']) ?></h2><p><?= kiosk_escape($entry['summary'] !== '' ? $entry['summary'] : 'Lihat informasi lengkap dan persyaratan layanan.') ?></p><span class="card-action">Lihat detail & persyaratan <?= kiosk_icon('arrow') ?></span></a>
+                <a class="menu-card" href="kiosk.php?menu=<?= kiosk_escape($selected) ?>&amp;layanan=<?= (int) $entry['id'] ?>" data-menu-voice="<?= kiosk_escape($entry['name']) ?>">
+                    <span class="card-top"><span class="menu-icon blue"><?= kiosk_icon('document') ?></span><span class="menu-status"><?= kiosk_escape($entry['category_name']) ?></span></span>
+                    <h2><?= kiosk_escape($entry['name']) ?></h2>
+                    <p><?= kiosk_escape($entry['summary'] !== '' ? $entry['summary'] : 'Lihat informasi lengkap dan persyaratan layanan.') ?></p>
+                    <span class="card-action">Lihat detail & persyaratan <?= kiosk_icon('arrow') ?></span>
+                </a>
             <?php endforeach; ?>
         </div>
     <?php endif; ?>

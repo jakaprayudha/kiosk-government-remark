@@ -181,13 +181,13 @@ Halaman reset password meminta username dan kode pemulihan. Formulir admin mendu
 
 Setelah login, admin membuka `public/admin/dashboard.php`. Panel ini dirancang untuk laptop/desktop dengan sidebar, tabel aktivitas, serta navigasi keyboard dan mouse; tidak memerlukan touchscreen. Di layar kecil, tombol menu membuka sidebar.
 
-Dashboard membaca jumlah admin aktif, pengajuan baru, total pengajuan dalam retensi (termasuk DEMO), aktivitas hari ini (WIB), dan tujuh aktivitas audit terakhir langsung dari SQLite. Menu **Pengajuan layanan** aktif untuk pemeriksaan dan tindak lanjut; **Layanan & persyaratan** menyediakan pengaturan transaksi per layanan. CRUD konten kategori/layanan/persyaratan, pengaduan, antrean, akun, laporan, audit lengkap, dan pengaturan umum masih menyusul.
+Dashboard membaca jumlah admin aktif, pengajuan baru, total pengajuan dalam retensi (termasuk DEMO), aktivitas hari ini (WIB), dan tujuh aktivitas audit terakhir langsung dari SQLite. Menu **Pengajuan layanan** aktif untuk pemeriksaan dan tindak lanjut; **Layanan administrasi** menyediakan pengaturan transaksi per layanan; **Persyaratan & biaya** menyediakan tambah/edit/publikasi master referensi dokumen. CRUD konten kategori/layanan transaksi, pengaduan, antrean, akun, laporan, audit lengkap, dan pengaturan umum masih menyusul.
 
 ### UI KIOSK publik
 
 Buka `public/kiosk.php` melalui `/kiosk.php` pada server dengan document root `public`. Aksi **Lihat KIOSK publik** di sidebar dan banner dashboard membuka halaman ini di tab baru tanpa mengganti halaman admin.
 
-UI publik menyediakan delapan menu dengan target sentuh besar, panduan informasi, tombol beranda/bantuan, pilihan teks besar, dan jam WIB. Menu layanan administrasi serta persyaratan dan biaya membaca katalog SQLite. Pengajuan tersedia untuk layanan yang diaktifkan pengelola, dengan cek tiket + PIN. Layanan DEMO selalu diberi tanda simulasi. Profil kantor, pengaduan digital, dan antrean belum tersedia. Publik tidak perlu login. Formulir/foto berada sementara di memori halaman sampai dikirim; tidak memakai localStorage/IndexedDB untuk data pemohon.
+UI publik menyediakan delapan menu dengan target sentuh besar, panduan informasi, tombol beranda/bantuan, pilihan teks besar, dan jam WIB. Menu layanan administrasi membaca katalog transaksi SQLite; persyaratan dan biaya membaca master referensi dokumen SQLite yang terpisah. Pengajuan tersedia untuk layanan yang diaktifkan pengelola, dengan cek tiket + PIN. Layanan DEMO selalu diberi tanda simulasi. Profil kantor, pengaduan digital, dan antrean belum tersedia. Publik tidak perlu login. Formulir/foto berada sementara di memori halaman sampai dikirim; tidak memakai localStorage/IndexedDB untuk data pemohon.
 
 Header tanggal dan waktu tetap terlihat saat halaman digulir. Jam menampilkan jam, menit, dan detik WIB sesuai waktu perangkat, diperbarui setiap detik. Menyentuh menu membacakan nama menu dalam bahasa Indonesia melalui Web Speech API sebelum membuka halaman tujuan. Ketersediaan suara bergantung pada dukungan browser, suara bahasa Indonesia di sistem operasi, serta volume perangkat; tidak menggunakan API suara pihak ketiga yang dikonfigurasi aplikasi. Jika suara gagal atau tidak didukung, pemberitahuan ditampilkan dan menu tetap dibuka. Membuka tautan dengan Ctrl/Cmd atau di tab baru tidak menunggu suara.
 
@@ -195,7 +195,7 @@ Setelah 120 detik tanpa aktivitas, dialog konfirmasi ditampilkan selama 20 detik
 
 ### Katalog layanan dinamis (SQLite)
 
-Jalankan `php bin/migrate.php` untuk menerapkan migrasi `002_service_catalog`. Menu `/kiosk.php?menu=layanan` dan `/kiosk.php?menu=syarat` membaca tabel berikut:
+Jalankan `php bin/migrate.php` untuk menerapkan migrasi `002_service_catalog`. Menu `/kiosk.php?menu=layanan` membaca tabel berikut:
 
 - `service_categories`: nama, slug unik, deskripsi, ikon, urutan, dan status aktif.
 - `services`: kategori, nama, slug, ringkasan, deskripsi, sasaran pemohon, biaya, estimasi waktu, unit, lokasi/kanal, URL resmi, urutan, status publikasi, dan tanggal berlaku.
@@ -206,6 +206,12 @@ Layanan baru secara default berstatus draf (`is_published = 0`). Katalog dan det
 Database awal tidak diisi layanan contoh agar persyaratan/biaya rekaan tidak dianggap resmi. Sebelum CRUD admin tersedia, konten resmi hanya dapat diisi oleh pengelola teknis melalui SQLite dengan foreign key aktif. Halaman langsung membaca perubahan saat dimuat ulang. Pengaturan transaksi tersedia di admin; CRUD konten tetap menyusul. Biaya atau persyaratan kosong ditandai belum diinformasikan, bukan dianggap gratis atau tanpa dokumen. Tautan kanal resmi hanya menerima URL HTTP/HTTPS tanpa kredensial dan dibuka di tab baru.
 
 Validasi katalog tanpa mengubah database aplikasi: `php tests/service-catalog.php`.
+
+Menu **Persyaratan & biaya** (`/kiosk.php?menu=syarat`) menampilkan tabel referensi dengan kolom pengurusan dokumen, daftar syarat, nominal rupiah, serta dasar hukum/Perda dan tautan sumber. Di layar kecil setiap baris menjadi kartu. Semua isi langsung terlihat tanpa membuka detail, checklist, atau transaksi. Data berasal dari tabel SQLite `document_guides` (migrasi `004_document_guides`), terpisah dari katalog pengajuan; parameter lama `layanan`/`kategori` pada menu syarat tidak lagi memfilter data. Menu **Layanan administrasi** tetap memakai alur detail → pengajuan. Pengelola harus menyelaraskan ketentuan yang terkait pada kedua master data.
+
+Jalankan `php bin/seed-demo-document-guides.php` untuk memuat empat contoh pengurusan wilayah **Kabupaten Serdang Bedagai** dari `database/seeds/demo-document-guides.sql`. Seed aman dijalankan ulang tanpa menimpa perubahan admin. Semua syarat, Rp0, dan Rp10.000 adalah **data simulasi**, bukan ketentuan resmi atau dasar pungutan; tidak ada nomor Perda rekaan. Produksi wajib memakai persyaratan dan tarif dari instansi berwenang.
+
+Admin → **Persyaratan & biaya** (`/admin/dashboard.php?module=document-guides`) dapat menambah/mengedit nama pengurusan, wilayah, syarat (satu dokumen per baris), nominal biaya, catatan biaya, dasar hukum (nomor/tahun/pasal/lampiran), URL sumber, urutan, status DEMO dan publikasi. Kosong berarti biaya belum diketahui, sedangkan `0` adalah nominal nol yang tetap perlu dasar hukum untuk data resmi. Data non-DEMO hanya dapat tayang setelah admin menandai verifikasi dengan nominal, dasar hukum dan URL sumber yang lengkap. Ini merupakan konfirmasi pengelola, bukan verifikasi hukum otomatis. Nonaktifkan publikasi untuk menarik data; perubahan memakai CSRF, deteksi konflik versi, dan audit SQLite. Panduan ini tidak membatasi dasar hukum hanya pada Perda karena kewenangan/tarif dapat mengikuti ketentuan lain. Uji regresi: `php tests/document-guides.php`.
 
 Untuk mengisi contoh pengujian secara opsional, jalankan `php bin/seed-demo-services.php`. Perintah ini menambahkan tiga kategori, enam layanan terpublikasi, dan dua persyaratan per layanan (wajib/opsional), semuanya berlabel **DEMO**, bukan informasi resmi. Menjalankan ulang tidak menggandakan atau menimpa data dengan slug yang sudah ada. Data demo tidak boleh digunakan sebagai dasar pengurusan layanan; hapus atau ganti dengan data terverifikasi sebelum penggunaan publik sebenarnya.
 
@@ -227,7 +233,7 @@ Admin:
 
 - **Pengajuan layanan**: daftar berpaginasi, filter status, detail, foto privat melalui endpoint berautentikasi, dan riwayat. Catatan publik serta internal terpisah.
 - Transisi: Baru → Ditinjau → Diproses → Selesai; dari Ditinjau/Diproses dapat meminta informasi; Ditolak dan Perlu informasi wajib alasan publik. Status akhir tidak dibuka ulang. Konflik pembaruan ditolak dan perubahan dicatat dalam audit.
-- **Layanan & persyaratan**: pengaturan `accepts_submissions`, `requires_name`, `requires_contact`, `camera_enabled`, `retention_days` (1–365 hari). Default layanan baru: informasi saja, kamera mati, nama/kontak opsional, retensi 30 hari. Aktifkan transaksi hanya untuk layanan berwenang. Retensi baru berlaku pada pengajuan berikutnya; snapshot nama layanan dan `is_demo` tersimpan pada tiket.
+- **Layanan administrasi**: pengaturan `accepts_submissions`, `requires_name`, `requires_contact`, `camera_enabled`, `retention_days` (1–365 hari). Default layanan baru: informasi saja, kamera mati, nama/kontak opsional, retensi 30 hari. Aktifkan transaksi hanya untuk layanan berwenang. Retensi baru berlaku pada pengajuan berikutnya; snapshot nama layanan dan `is_demo` tersimpan pada tiket.
 - Enam layanan dummy yang telah di-seed diaktifkan untuk simulasi oleh migrasi. Gunakan data/dokumen contoh saja. Tidak ada pengajuan dikirim ke instansi eksternal.
 
 Lampiran disimpan dengan nama acak di `storage/uploads/` (privat, di luar web root). Setelah batas retensi, pengajuan/lampiran tidak dapat diakses lagi. Jadwalkan **setiap hari** `php bin/purge-submissions.php` untuk menghapus berkas, pengajuan, dan riwayat kedaluwarsa. Kegagalan cleanup menghasilkan exit nonzero untuk monitoring. Backup harus memiliki aturan retensi/penghapusan sendiri. Sebelum produksi, instansi wajib menyetujui dasar pemrosesan, retensi, dan prosedur operasional.

@@ -7,7 +7,7 @@ $menus = [
         'heading' => 'Kenali layanan sebelum mengurus',
         'intro' => 'Halaman ini menyediakan panduan umum. Daftar layanan resmi kecamatan belum dipublikasikan.',
         'steps' => ['Tentukan kebutuhan administrasi Anda dan tanyakan unit yang berwenang kepada petugas.', 'Pastikan layanan diproses oleh kecamatan atau instansi lain sebelum menyerahkan dokumen.', 'Untuk Dukcapil, bantuan sosial, pajak, atau pembayaran, ikuti kanal resmi instansi terkait.']],
-    'syarat' => ['title' => 'Persyaratan & biaya', 'text' => 'Ketahui hal yang perlu diperiksa sebelum datang.', 'icon' => 'checklist', 'tone' => 'orange', 'status' => 'Katalog layanan',
+    'syarat' => ['title' => 'Persyaratan & biaya', 'text' => 'Tabel syarat dokumen, biaya, dan dasar hukum pengurusan.', 'icon' => 'checklist', 'tone' => 'orange', 'status' => 'Tabel referensi',
         'heading' => 'Persiapan yang tepat, proses lebih jelas',
         'intro' => 'Persyaratan, biaya, dan estimasi berbeda untuk setiap layanan. Rincian resmi belum tersedia di KIOSK ini.',
         'steps' => ['Konfirmasikan dokumen wajib, dokumen tambahan, dan kebutuhan salinan kepada petugas.', 'Pastikan informasi biaya dan estimasi waktu berasal dari kanal resmi; jangan menganggap seluruh layanan gratis.', 'Jangan mengunggah atau menyerahkan data identitas kecuali diperlukan dan tujuan penggunaannya jelas.']],
@@ -48,7 +48,20 @@ $page = $selected === '' ? null : $menus[$selected];
 $now = new DateTimeImmutable('now', new DateTimeZone('Asia/Jakarta'));
 $isTransaction = in_array($selected, ['pengajuan', 'status', 'bukti'], true);
 if ($isTransaction) require dirname(__DIR__) . '/app/public-submissions-controller.php';
-$isCatalog = in_array($selected, ['layanan', 'syarat'], true);
+$isCatalog = $selected === 'layanan';
+$documentGuides = [];
+$guidesError = '';
+if ($selected === 'syarat') {
+    require_once dirname(__DIR__) . '/app/database.php';
+    require_once dirname(__DIR__) . '/app/document-guides.php';
+    try {
+        $documentGuides = public_document_guides(open_database());
+    } catch (RuntimeException $error) {
+        error_log('Panduan dokumen gagal dimuat: ' . get_class($error));
+        http_response_code(503);
+        $guidesError = 'Persyaratan dan biaya belum dapat dimuat. Silakan hubungi petugas.';
+    }
+}
 $catalogError = '';
 $catalog = [];
 $categories = [];
@@ -124,8 +137,8 @@ function kiosk_icon(string $name): string
     <meta name="theme-color" content="#f4f7fc">
     <meta name="public-csrf" content="<?= kiosk_escape($_SESSION['csrf']) ?>">
     <title><?= $page ? kiosk_escape($page['title']) . ' — ' : '' ?>KIOSK Publik Kecamatan</title>
-    <link rel="stylesheet" href="assets/css/kiosk.css">
-    <script src="assets/js/kiosk.js" defer></script>
+    <link rel="stylesheet" href="assets/css/kiosk.css?v=<?= filemtime(__DIR__ . '/assets/css/kiosk.css') ?>">
+    <script src="assets/js/kiosk.js?v=<?= filemtime(__DIR__ . '/assets/js/kiosk.js') ?>" defer></script>
     <script src="assets/js/service-devices.js" defer></script>
     <?php if ($isTransaction): ?><script src="assets/js/auth.js" defer></script><?php endif; ?>
 </head>
@@ -152,6 +165,8 @@ function kiosk_icon(string $name): string
                 </div>
             </section>
             <aside class="public-notice"><?= kiosk_icon('help') ?><p><strong>Informasi untuk Anda</strong> Katalog menampilkan layanan yang dipublikasikan pengelola. Pengajuan tersedia sesuai pengaturan layanan; layanan DEMO hanya untuk simulasi. Profil kantor dan antrean belum tersedia.</p></aside>
+        <?php elseif ($selected === 'syarat'): ?>
+            <?php require dirname(__DIR__) . '/app/views/public-document-guides.php'; ?>
         <?php elseif ($isCatalog): ?>
             <?php require dirname(__DIR__) . '/app/views/service-catalog.php'; ?>
         <?php elseif ($isTransaction): ?>

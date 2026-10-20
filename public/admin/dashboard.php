@@ -15,6 +15,7 @@ if (!is_string($module) || !isset($navigation[$module])) {
 $page = $navigation[$module];
 if ($module === 'submissions') require dirname(__DIR__, 2) . '/app/admin-submissions-controller.php';
 if ($module === 'services') require dirname(__DIR__, 2) . '/app/admin-service-settings.php';
+if ($module === 'document-guides') require dirname(__DIR__, 2) . '/app/admin-document-guides.php';
 $stats = null;
 $events = [];
 if ($module === 'dashboard') {
@@ -36,7 +37,8 @@ if ($module === 'dashboard') {
 }
 $now = new DateTimeImmutable('now', new DateTimeZone('Asia/Jakarta'));
 $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => 'Reset password',
-    'service_settings' => 'Pengaturan layanan', 'submission_status' => 'Status pengajuan'];
+    'service_settings' => 'Pengaturan layanan', 'submission_status' => 'Status pengajuan',
+    'document_guide_saved' => 'Persyaratan & biaya'];
 ?>
 <!doctype html>
 <html lang="id">
@@ -68,7 +70,7 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
                    <?= $module === $key ? 'aria-current="page"' : '' ?>>
                     <?= admin_icon($item['icon']) ?>
                     <span><?= escape($item['label']) ?></span>
-                    <?php if (!in_array($key, ['dashboard', 'submissions', 'services'], true)): ?><span class="planned-dot" title="Modul belum tersedia"><span class="sr-only">Belum tersedia</span></span><?php endif; ?>
+                    <?php if (!in_array($key, ['dashboard', 'submissions', 'services', 'document-guides'], true)): ?><span class="planned-dot" title="Modul belum tersedia"><span class="sr-only">Belum tersedia</span></span><?php endif; ?>
                 </a>
             <?php endforeach; ?>
         </nav>
@@ -140,7 +142,7 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
                         <ul class="status-list">
                             <li><span class="status-check" aria-hidden="true">✓</span><div><strong>Login & pemulihan akun</strong><p>Autentikasi admin sudah tersedia.</p></div><span class="status-text">Aktif</span></li>
                             <li><span class="status-check" aria-hidden="true">✓</span><div><strong>Database SQLite</strong><p>Terhubung ke penyimpanan lokal.</p></div><span class="status-text">Aktif</span></li>
-                            <li><span class="status-pending" aria-hidden="true">·</span><div><strong>Pengelolaan konten</strong><p>Tambah, edit, dan hapus menyusul.</p></div></li>
+                            <li><span class="status-check" aria-hidden="true">✓</span><div><strong>Persyaratan & biaya</strong><p>Tambah, edit, dan publikasi referensi tersedia.</p></div></li>
                             <li><span class="status-check" aria-hidden="true">✓</span><div><strong>Pengajuan layanan</strong><p>Tiket, foto, dan tindak lanjut tersedia.</p></div></li>
                         </ul>
                         <div class="notice"><strong>Pengajuan terhubung SQLite</strong><p>Periksa menu Pengajuan layanan untuk menindaklanjuti tiket. Pengaduan digital dan antrean masih menyusul.</p><a href="dashboard.php?module=submissions">Buka pengajuan →</a></div>
@@ -148,10 +150,10 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
                 </div>
 
                 <section class="panel modules-panel">
-                    <div class="panel-heading"><div><h2>Ruang pengelolaan KIOSK</h2><p>Pilih modul untuk melihat cakupan fitur yang akan disiapkan.</p></div><span class="badge">CRUD menyusul</span></div>
+                    <div class="panel-heading"><div><h2>Ruang pengelolaan KIOSK</h2><p>Kelola referensi dokumen dan pengaturan transaksi. Modul lainnya menyusul.</p></div></div>
                     <div class="module-grid">
-                        <?php foreach (['services', 'announcements', 'office', 'queues'] as $key): ?>
-                            <a class="module-card" href="dashboard.php?module=<?= escape($key) ?>"><span class="icon-box blue"><?= admin_icon($navigation[$key]['icon']) ?></span><h3><?= escape($navigation[$key]['label']) ?></h3><p><?= escape($navigation[$key]['description']) ?></p><span class="module-link">Lihat rencana modul <?= admin_icon('arrow') ?></span></a>
+                        <?php foreach (['document-guides', 'services', 'announcements', 'office', 'queues'] as $key): ?>
+                            <a class="module-card" href="dashboard.php?module=<?= escape($key) ?>"><span class="icon-box blue"><?= admin_icon($navigation[$key]['icon']) ?></span><h3><?= escape($navigation[$key]['label']) ?></h3><p><?= escape($navigation[$key]['description']) ?>                            </p><span class="module-link"><?= in_array($key, ['document-guides', 'services'], true) ? 'Buka pengelolaan' : 'Lihat rencana modul' ?> <?= admin_icon('arrow') ?></span></a>
                         <?php endforeach; ?>
                     </div>
                 </section>
@@ -159,6 +161,8 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
                 <?php require dirname(__DIR__, 2) . '/app/views/admin-submissions.php'; ?>
             <?php elseif ($module === 'services'): ?>
                 <?php require dirname(__DIR__, 2) . '/app/views/admin-service-settings.php'; ?>
+            <?php elseif ($module === 'document-guides'): ?>
+                <?php require dirname(__DIR__, 2) . '/app/views/admin-document-guides.php'; ?>
             <?php else: ?>
                 <section class="panel placeholder-panel">
                     <span class="placeholder-icon"><?= admin_icon($page['icon']) ?></span>

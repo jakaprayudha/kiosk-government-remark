@@ -67,6 +67,26 @@ h1, h2, h3, p { margin-top: 0; }
 .selected-filter { color: #fff; border-color: var(--blue); background: var(--blue); }
 .catalog-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 18px; }
 .catalog-grid .menu-card h2 { margin: 18px 0 9px; font-size: 1.2rem; overflow-wrap: anywhere; }
+.document-guide-table { margin-block: 24px; border: 1px solid var(--line); border-radius: 12px; background: #fff; overflow: hidden; }
+.document-guide-table table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.document-guide-table th, .document-guide-table td { padding: 22px; vertical-align: top; text-align: left; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.document-guide-table thead th { color: #fff; background: var(--blue); font-size: .9rem; }
+.document-guide-table tbody th { font-weight: 500; }
+.document-guide-table tbody tr:last-child > * { border-bottom: 0; }
+.document-guide-table ol { padding-left: 20px; margin: 0; }
+.document-guide-table li + li { margin-top: 12px; }
+.document-guide-table p, .document-guide-table li { font-size: .85rem; }
+.guide-region, .guide-verification { display: block; margin-top: 12px; color: var(--muted); font-size: .8rem; }
+.guide-fee { display: block; color: var(--blue); font-size: 1.2rem; }
+@media (max-width: 900px) {
+    .document-guide-table { border: 0; background: transparent; overflow: visible; }
+    .document-guide-table table, .document-guide-table tbody { display: block; }
+    .document-guide-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    .document-guide-table tr { display: block; margin-bottom: 18px; padding: 6px 18px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+    .document-guide-table tbody th, .document-guide-table tbody td { display: block; padding: 16px 0; }
+    .document-guide-table [data-label]::before { display: block; margin-bottom: 10px; color: var(--muted); font-size: .8rem; font-weight: 600; content: attr(data-label); }
+}
+.requirements-demo { display: inline-block; margin-top: 14px; padding: 5px 8px; border-radius: 5px; color: #8a5621; background: #fff5dd; font-size: .7rem; font-weight: 650; }
 .catalog-empty { display: flex; min-height: 290px; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 35px; border: 1px solid var(--line); border-radius: 12px; background: #fff; text-align: center; }
 .catalog-empty h1, .catalog-empty h2 { margin: 0; font-size: 1.5rem; }
 .catalog-empty p { max-width: 650px; margin: 0; color: var(--muted); }
