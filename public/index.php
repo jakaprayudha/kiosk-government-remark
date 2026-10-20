@@ -37,7 +37,7 @@
                 <a href="#layanan">Layanan</a>
                 <a href="#cara-kerja">Cara kerja</a>
                 <a href="#informasi">Informasi</a>
-                <a class="button button-small button-outline" href="#akses-admin">
+                <a class="button button-small button-outline" href="admin/login.php">
                     Login Admin
                     <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M11 3h6v6M17 3l-8 8M15 11v5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </a>
@@ -224,7 +224,7 @@
                     <h2>Kelola informasi layanan dengan lebih teratur.</h2>
                     <p>Panel admin untuk petugas sedang disiapkan.</p>
                 </div>
-                <a class="button button-light admin-login-link" href="#akses-admin">Login Admin <span aria-hidden="true">→</span></a>
+                <a class="button button-light admin-login-link" href="admin/login.php">Login Admin <span aria-hidden="true">→</span></a>
             </div>
         </section>
     </main>

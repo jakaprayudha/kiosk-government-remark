@@ -159,6 +159,24 @@ storage/
 
 Gunakan front controller sederhana (`public/index.php`), pemisahan controller dan akses data, serta file migrasi SQL. Untuk instalasi satu kecamatan, SQLite cukup selama beban tulis rendah, ada satu server aplikasi, dan backup dilakukan. Jika nanti banyak kiosk menulis serentak atau dibutuhkan layanan daring multi-instance, rencanakan migrasi ke PostgreSQL/MySQL.
 
+### Setup login admin awal
+
+Pastikan PHP 8.2+ memiliki ekstensi `PDO_SQLite`, lalu dari direktori proyek jalankan:
+
+```sh
+php bin/setup-admin.php
+```
+
+Perintah ini menjalankan migrasi SQLite, meminta nama, username, dan password admin pertama, lalu membuat satu kode pemulihan acak. Simpan kode tersebut di tempat aman; kode hanya ditampilkan sekali, disimpan dalam bentuk hash, dan hanya dapat dipakai satu kali. Jangan masukkan database `database/kiosk.sqlite` ke Git. Untuk menjalankan server pengembangan dengan document root yang benar:
+
+```sh
+php -S localhost:8000 -t public
+```
+
+Buka `http://localhost:8000`, lalu pilih **Login Admin**. Gunakan `php bin/migrate.php` untuk menjalankan migrasi baru setelah pembaruan aplikasi.
+
+Halaman reset password meminta username dan kode pemulihan. Formulir admin mendukung keyboard perangkat saat input disentuh serta menyediakan tombol **Keyboard layar sentuh** sebagai alternatif. Pada perangkat kiosk, aktifkan juga keyboard virtual di sistem operasi/browser kiosk untuk pengalaman input native. Situs produksi wajib disajikan melalui HTTPS agar cookie sesi menggunakan atribut `Secure`.
+
 ## 10. Tahapan implementasi
 
 1. **Fondasi:** skema/migrasi SQLite, login admin, kontrol peran, audit log, dan pengelolaan profil kantor.
