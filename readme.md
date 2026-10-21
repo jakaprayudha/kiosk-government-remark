@@ -390,6 +390,12 @@ Menu `admin/dashboard.php?module=queues` memakai tab Instansi, Layanan, Jadwal &
 
 Filter tanggal WIB dan pemilih jadwal langsung memuat data saat berubah (fallback tombol tanpa JavaScript). Pemilih jadwal menampilkan instansi, layanan dan jam, bukan meminta ID manual; pergantian tanggal mengembalikan pilihan ke semua jadwal. Tanggal dipertahankan antar-tab. Status aktif/buka serta status pemesanan memakai badge berwarna dan label teks. Aksi Ubah, Panggilan dan Simpan tampil sebagai tombol. Daftar pemesanan tetap berpaginasi server, dengan aturan urutan panggilan, versi, kuota, waktu dan DEMO yang sama. Uji `php tests/queues.php`.
 
+### Laporan operasional dasar
+
+Menu **Laporan** (`admin/dashboard.php?module=reports`) aktif untuk admin pusat. Default periode dari awal bulan sampai hari ini WIB. Pilih tanggal awal/akhir lalu **Tampilkan laporan**, atau **Bulan ini** untuk reset. Laporan berisi total pengajuan, pengaduan/aspirasi, pemesanan antrean, rincian status terkini masing-masing, serta pengajuan per snapshot nama layanan (total, berjalan, selesai, ditolak dan termasuk DEMO).
+
+Seluruh angka menggunakan **tanggal transaksi dibuat**, dikonversi dari WIB ke batas UTC dengan tanggal akhir inklusif. Tanggal jadwal antrean tidak menjadi dasar periode ini. Status adalah keadaan terkini, bukan histori perubahan atau jumlah penyelesaian pada periode terpilih. Hanya transaksi belum kedaluwarsa yang dihitung; laporan bukan arsip historis permanen karena retensi/purge. Data DEMO ikut dihitung, antrean tetap simulasi, dan hasil masih gabungan semua kecamatan. Tidak mengambil nama, NIK, kontak atau catatan internal warga. Belum mencakup ekspor atau filter per kecamatan. Uji `php tests/reports.php`.
+
 ## 10. Tahapan implementasi
 
 1. **Fondasi:** skema/migrasi SQLite, login admin, kontrol peran, audit log, dan pengelolaan profil kantor.

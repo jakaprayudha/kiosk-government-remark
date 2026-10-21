@@ -25,6 +25,7 @@ if ($module === 'queues') require dirname(__DIR__, 2) . '/app/admin-queues-contr
 if ($module === 'services') require dirname(__DIR__, 2) . '/app/admin-service-settings.php';
 if ($module === 'document-guides') require dirname(__DIR__, 2) . '/app/admin-document-guides.php';
 if ($module === 'announcements') require dirname(__DIR__, 2) . '/app/admin-announcements.php';
+if ($module === 'reports') require dirname(__DIR__, 2) . '/app/admin-reports.php';
 if (in_array($module, ['office', 'users'], true)) require dirname(__DIR__, 2) . '/app/admin-office.php';
 $stats = null;
 $events = [];
@@ -89,7 +90,7 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
                    <?= $module === $key ? 'aria-current="page"' : '' ?>>
                     <?= admin_icon($item['icon']) ?>
                     <span><?= escape($item['label']) ?></span>
-                    <?php if (!in_array($key, ['dashboard', 'categories', 'submissions', 'complaints', 'queues', 'services', 'document-guides', 'announcements', 'office', 'users'], true)): ?><span class="planned-dot" title="Modul belum tersedia"><span class="sr-only">Belum tersedia</span></span><?php endif; ?>
+                    <?php if (!in_array($key, ['dashboard', 'categories', 'submissions', 'complaints', 'queues', 'services', 'document-guides', 'announcements', 'office', 'users', 'reports'], true)): ?><span class="planned-dot" title="Modul belum tersedia"><span class="sr-only">Belum tersedia</span></span><?php endif; ?>
                 </a>
             <?php endforeach; ?>
         </nav>
@@ -192,6 +193,8 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
                 <?php require dirname(__DIR__, 2) . '/app/views/admin-announcements.php'; ?>
             <?php elseif (in_array($module, ['office', 'users'], true)): ?>
                 <?php require dirname(__DIR__, 2) . '/app/views/admin-office.php'; ?>
+            <?php elseif ($module === 'reports'): ?>
+                <?php require dirname(__DIR__, 2) . '/app/views/admin-reports.php'; ?>
             <?php else: ?>
                 <section class="panel placeholder-panel">
                     <span class="placeholder-icon"><?= admin_icon($page['icon']) ?></span>
