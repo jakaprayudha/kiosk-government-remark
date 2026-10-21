@@ -357,6 +357,24 @@ Foto wajah pada formulir pengajuan memakai garis oval hijau saja, tanpa gambar w
 
 Panduan kendala mencakup scan QR kamera/USB, foto pengajuan, cetak bukti/PDF, PIN salah/hilang, koneksi/pengiriman belum terkonfirmasi, surat/tanggapan belum tersedia, arti DEMO, dan peringatan sesi tidak aktif. Penutup mengingatkan pengguna mengambil kertas, menutup tab PDF, mengamankan file unduhan, dan menekan Selesai & bersihkan sesi. Halaman tidak mengklaim dapat memanggil petugas, memulihkan PIN, menjamin cetak fisik, atau menghapus data transaksi tersimpan saat sesi berakhir. Uji konten dan tautan: `php tests/help.php`.
 
+### Profil multi-kecamatan, akun wilayah dan penetapan KIOSK
+
+Menu admin **Profil kecamatan** (`admin/dashboard.php?module=office`) kini mengelola banyak kecamatan dalam satu aplikasi/SQLite. Terapkan `php bin/migrate.php` untuk migrasi `014_office_admin_scope`; akun admin lama tetap **admin pusat** (`users.office_id IS NULL`).
+
+1. Admin pusat menambah profil kecamatan: kode unik, nama, kabupaten/provinsi, alamat, jam pelayanan, kontak, sumber resmi, koordinat dan status publikasi.
+2. Pilih kecamatan pada pemilih wilayah, lalu kelola tab **Desa** dan **Sarana & prasarana**. Desa memuat kepala desa, telepon, jumlah/tahun penduduk, koordinat/sumber. Sarana memuat kategori kesehatan/sekolah/pemerintahan/pasar/olahraga, alamat, kontak, jam dan koordinat. Kode anak unik per kecamatan; kode sama boleh digunakan di kecamatan berbeda.
+3. Tab **Admin kecamatan** (khusus admin pusat) menambah akun yang terikat pada kecamatan terpilih. Login memakai halaman `/admin/login.php` yang sama dan diarahkan ke profil wilayahnya. Username unik; password 12–72 byte, disimpan sebagai hash. Kosongkan password ketika mengubah akun untuk mempertahankannya; isi untuk menggantinya. Pemulihan akun baru dilakukan admin pusat lewat penggantian password ini, bukan kode pemulihan otomatis.
+4. Admin kecamatan hanya dapat mengubah profil sendiri serta CRUD desa/sarana sendiri, termasuk toggle publikasi. Tidak dapat membuat/menghapus profil, memindah data antar-wilayah, mengatur akun/perangkat, membuka modul pusat, atau mengakses lampiran/surat admin. Pembatasan diperiksa server dan status akun dibaca ulang pada setiap permintaan; perubahan disimpan dengan CSRF, versi optimistis, transaksi dan audit.
+5. **Pada browser perangkat KIOSK yang akan digunakan masyarakat**, login sebagai admin pusat, pilih kecamatan, buka **Perangkat KIOSK**, beri nama/lokasi lalu tekan **Tetapkan browser ini ke kecamatan terpilih**. Periksa profil publik, lalu logout admin sebelum menyerahkan perangkat. Penetapan ini hanya berlaku untuk browser/profil browser tersebut, bukan otomatis bagi semua perangkat.
+
+Penetapan menyimpan token acak pada cookie `kiosk_device` berumur satu tahun, HttpOnly, SameSite=Lax dan Secure pada HTTPS; hanya hash token disimpan di SQLite. Cookie terpisah dari sesi publik/admin, sehingga logout atau **Selesai & bersihkan sesi** tidak mengubah kecamatan. Menghapus cookie, menggunakan mode privat atau mengganti browser memerlukan penetapan ulang. Penetapan ulang menonaktifkan token lama browser tersebut; catatan perangkat lama tetap tersedia untuk audit dan dapat dihapus admin pusat. OFF/hapus perangkat mencabut akses profil publik browsernya; ON mengizinkan token kembali selama cookie masih ada.
+
+**Tidak ada fallback diam-diam ke Sei Rampah.** Browser yang belum ditetapkan menampilkan petunjuk menghubungi admin pusat. Token tidak valid/dicabut menampilkan pesan eksplisit. Parameter URL kecamatan tidak dapat mengganti penetapan. Profil OFF menampilkan pemberitahuan belum dipublikasikan, dan desa/sarana OFF tidak ditampilkan. Profil dengan desa, sarana, akun atau perangkat tidak dapat dihapus; gunakan OFF. Data contoh Sei Rampah yang sudah ada tetap dipertahankan, tetapi setiap browser perlu ditetapkan ke profil tersebut jika ingin melihatnya.
+
+**Batas tahap ini:** hanya profil, desa dan sarana yang dipisahkan per kecamatan. Kategori, layanan, persyaratan/biaya, pengumuman, pengajuan, pengaduan dan antrean masih bersama dan hanya dikelola admin pusat. Ini bukan isolasi seluruh transaksi multi-tenant. Jangan menganggap transaksi milik kecamatan tertentu berdasarkan cookie perangkat.
+
+Semua tabel mengikuti style master data: search/sort/pagination lokal, modal tambah/ubah dengan header/footer tetap, toggle ON/OFF, dan hapus outline merah tanpa konfirmasi. Data baru berupa profil/desa/sarana default OFF dan DEMO sampai diperiksa. Muat ulang publik untuk membaca perubahan. Uji: `php tests/office-management.php` dan `php tests/office.php`.
+
 ## 10. Tahapan implementasi
 
 1. **Fondasi:** skema/migrasi SQLite, login admin, kontrol peran, audit log, dan pengelolaan profil kantor.

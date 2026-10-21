@@ -66,7 +66,7 @@ function current_admin(): ?array
     }
 
     $statement = db()->prepare(
-        'SELECT id, name, username, role, is_active
+        'SELECT id, name, username, role, is_active, office_id
          FROM users
          WHERE id = :id'
     );
@@ -81,11 +81,15 @@ function current_admin(): ?array
     return $admin;
 }
 
-function require_admin(): array
+function require_admin(bool $allowOfficeAdmin = false): array
 {
     $admin = current_admin();
     if ($admin === null) {
         redirect_to('/admin/login.php');
+    }
+    if (!$allowOfficeAdmin && $admin['office_id'] !== null) {
+        http_response_code(403);
+        exit('Akses terbatas untuk admin pusat.');
     }
 
     return $admin;

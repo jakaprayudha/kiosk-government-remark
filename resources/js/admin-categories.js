@@ -3,8 +3,9 @@ import { DataTable } from 'simple-datatables';
 const serviceTable = document.querySelector('#service-table');
 const guideTable = document.querySelector('#guide-table');
 const announcementTable = document.querySelector('#announcement-table');
-const table = document.querySelector('#category-table') || serviceTable || guideTable || announcementTable;
-const entity = serviceTable ? 'layanan' : guideTable ? 'panduan' : announcementTable ? 'pengumuman' : 'kategori';
+const officeTable = document.querySelector('#office-table');
+const table = document.querySelector('#category-table') || serviceTable || guideTable || announcementTable || officeTable;
+const entity = serviceTable ? 'layanan' : guideTable ? 'panduan' : announcementTable ? 'pengumuman' : officeTable ? 'data kecamatan' : 'kategori';
 if (table) {
     new DataTable(table, {
         perPage: 10,
@@ -20,8 +21,8 @@ if (table) {
             info: `Menampilkan {start}–{end} dari {rows} ${entity}`,
         },
         columns: [
-            { select: serviceTable ? [2] : guideTable ? [2, 3] : announcementTable ? [1] : [1, 3], type: 'number' },
-            { select: serviceTable || guideTable ? 5 : 4, sortable: false, searchable: false },
+            ...(officeTable ? [] : [{ select: serviceTable ? [2] : guideTable ? [2, 3] : announcementTable ? [1] : [1, 3], type: 'number' }]),
+            { select: officeTable ? 3 : serviceTable || guideTable ? 5 : 4, sortable: false, searchable: false },
         ],
     });
     const search = document.querySelector('.category-table .datatable-input');
@@ -33,6 +34,42 @@ if (table) {
             input.form.requestSubmit();
         }
     });
+}
+
+const officeDialog = document.querySelector('#office-dialog');
+const officeForm = document.querySelector('#office-form');
+const officeAdd = document.querySelector('#office-add');
+if (officeDialog && officeForm) {
+    officeAdd?.addEventListener('click', (event) => {
+        event.preventDefault();
+        officeForm.reset();
+        officeForm.action = officeAdd.href.replace('&new=1', '');
+        const defaults = JSON.parse(document.querySelector('#office-form-defaults').textContent);
+        for (const [key, value] of Object.entries(defaults)) {
+            const input = officeForm.elements.namedItem(key);
+            if (input.type === 'checkbox') input.checked = value === 1;
+            else input.value = value;
+        }
+        officeForm.querySelectorAll('input[type=password]').forEach((input) => input.required = true);
+        officeDialog.querySelectorAll('.admin-error').forEach((error) => error.remove());
+        document.querySelector('#office-dialog-title').textContent = 'Tambah data';
+        officeDialog.showModal();
+    });
+    officeDialog.querySelectorAll('[data-office-close]').forEach((close) => close.addEventListener('click', (event) => {
+        event.preventDefault();
+        officeDialog.close();
+    }));
+    officeDialog.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            officeDialog.close();
+        }
+    });
+    officeDialog.addEventListener('close', () => (officeAdd || document.querySelector('.office-tabs [aria-current]'))?.focus());
+    if (officeDialog.hasAttribute('data-auto-open')) {
+        officeDialog.removeAttribute('open');
+        officeDialog.showModal();
+    }
 }
 
 const announcementDialog = document.querySelector('#announcement-dialog');

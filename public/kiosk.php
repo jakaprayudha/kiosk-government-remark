@@ -87,9 +87,14 @@ $officeError = '';
 if ($selected === 'kantor') {
     require_once dirname(__DIR__) . '/app/database.php';
     require_once dirname(__DIR__) . '/app/office.php';
+    require_once dirname(__DIR__) . '/app/office-management.php';
     require_once dirname(__DIR__) . '/app/service-catalog.php';
     try {
-        $office = public_office(open_database(), 'sei-rampah');
+        $officeSlug = kiosk_office_slug(open_database(), $_COOKIE['kiosk_device'] ?? null);
+        if ($officeSlug === null) $officeError = 'Perangkat ini belum ditetapkan ke kecamatan. Hubungi admin pusat untuk menetapkan browser KIOSK melalui menu Profil kecamatan → Perangkat KIOSK.';
+        else $office = public_office(open_database(), $officeSlug);
+    } catch (DomainException $error) {
+        $officeError = $error->getMessage();
     } catch (RuntimeException $error) {
         error_log('Profil kecamatan gagal dimuat: ' . get_class($error));
         http_response_code(503);

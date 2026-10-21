@@ -59,7 +59,7 @@
     </section>
     <section aria-labelledby="facility-list-title">
         <div class="section-heading"><h2 id="facility-list-title">Sarana kecamatan</h2><span><?= count($office['facilities']) ?> fasilitas dipublikasikan</span></div>
-        <p class="demo-banner">Fasilitas berlabel DEMO memakai nama dan lokasi rekaan, bukan daftar fasilitas nyata di Sei Rampah. Jangan gunakan sebagai rujukan medis, darurat, sekolah, atau navigasi.</p>
+        <?php if (array_filter($office['facilities'], static fn(array $entry): bool => (int) $entry['is_demo'] === 1) !== []): ?><p class="demo-banner">Fasilitas berlabel DEMO memakai nama dan lokasi rekaan, bukan daftar fasilitas nyata di <?= kiosk_escape($office['name']) ?>. Jangan gunakan sebagai rujukan medis, darurat, sekolah, atau navigasi.</p><?php endif; ?>
         <?php if ($office['facilities'] === []): ?><p>Belum ada sarana kecamatan dipublikasikan.</p><?php endif; ?>
         <div class="village-grid">
             <?php foreach ($office['facilities'] as $facility): ?>

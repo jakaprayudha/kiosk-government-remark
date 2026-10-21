@@ -9,7 +9,7 @@ function admin_navigation(): array
         'services' => ['label' => 'Layanan administrasi', 'group' => 'KONTEN KIOSK', 'icon' => 'document', 'description' => 'Kelola master layanan, persyaratan, status publik dan pengaturan transaksi yang fleksibel.'],
         'document-guides' => ['label' => 'Persyaratan & biaya', 'group' => 'KONTEN KIOSK', 'icon' => 'document', 'description' => 'Kelola tabel referensi pengurusan dokumen, syarat, biaya, dan dasar hukum wilayah. Terpisah dari layanan transaksi.'],
         'announcements' => ['label' => 'Pengumuman', 'group' => 'KONTEN KIOSK', 'icon' => 'bell', 'description' => 'Kelola pengumuman, prioritas, dan periode tayang pada KIOSK.'],
-        'office' => ['label' => 'Profil kecamatan', 'group' => 'KONTEN KIOSK', 'icon' => 'building', 'description' => 'Perbarui profil kantor, alamat, jam layanan, kontak, dan kanal resmi.'],
+        'office' => ['label' => 'Profil kecamatan', 'group' => 'KONTEN KIOSK', 'icon' => 'building', 'description' => 'Kelola profil, desa dan sarana per kecamatan; admin pusat menetapkan akun wilayah dan perangkat KIOSK.'],
         'submissions' => ['label' => 'Pengajuan layanan', 'group' => 'OPERASIONAL', 'icon' => 'inbox', 'description' => 'Tinjau pengajuan, penugasan petugas, status, dan riwayat tindak lanjut.'],
         'complaints' => ['label' => 'Pengaduan & aspirasi', 'group' => 'OPERASIONAL', 'icon' => 'chat', 'description' => 'Tinjau masukan masyarakat dengan catatan publik dan internal yang terpisah.'],
         'queues' => ['label' => 'Antrean & jadwal', 'group' => 'OPERASIONAL', 'icon' => 'calendar', 'description' => 'Kelola instansi, layanan, jadwal berkuota, dan panggilan simulasi DEMO lokal. Belum terintegrasi ke antrean resmi.'],
