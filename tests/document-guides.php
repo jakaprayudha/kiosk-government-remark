@@ -85,4 +85,50 @@ try {
 } catch (PDOException $error) {
     check_guide((int) $pdo->query('SELECT COUNT(*) FROM document_guides')->fetchColumn() === 5, 'Kegagalan harus di-rollback.');
 }
+change_document_guide($pdo, $id, 3, 1, 1);
+check_guide(count(public_document_guides($pdo)) === 5, 'ON tidak memulihkan panduan publik.');
+change_document_guide($pdo, $id, 4, 1, 0);
+check_guide(count(public_document_guides($pdo)) === 4, 'OFF tidak menyembunyikan panduan.');
+rejects_guide(fn() => change_document_guide($pdo, $id, 4, 1, 1));
+rejects_guide(fn() => change_document_guide($pdo, $id, 4, 1, null));
+rejects_guide(fn() => change_document_guide($pdo, $id, 5, 1, 2));
+foreach ([1, null] as $action) {
+    try {
+        change_document_guide($pdo, $id, 5, 999, $action);
+        throw new RuntimeException('Audit invalid diterima.');
+    } catch (PDOException $error) {
+        check_guide((int) $pdo->query('SELECT version FROM document_guides WHERE id=' . $id)->fetchColumn() === 5, 'Toggle/delete tidak rollback.');
+    }
+}
+$draft = $official;
+unset($draft['is_published'], $draft['fee_verified']);
+$draft['fee_amount'] = '';
+$draft['source_url'] = '';
+$draft['legal_basis'] = '';
+$draftId = save_document_guide($pdo, $draft, 0, 0, 1);
+rejects_guide(fn() => change_document_guide($pdo, $draftId, 1, 1, 1));
+check_guide((int) $pdo->query('SELECT is_published FROM document_guides WHERE id=' . $draftId)->fetchColumn() === 0, 'Toggle melewati verifikasi hukum.');
+save_document_guide($pdo, [...$official, 'is_published' => '1'], $draftId, 1, 1);
+change_document_guide($pdo, $draftId, 2, 1, 0);
+change_document_guide($pdo, $draftId, 3, 1, 1);
+check_guide((int) $pdo->query('SELECT fee_verified FROM document_guides WHERE id=' . $draftId)->fetchColumn() === 1, 'Toggle mengubah verifikasi.');
+change_document_guide($pdo, $draftId, 4, 1, null);
+check_guide((int) $pdo->query('SELECT COUNT(*) FROM document_guides WHERE id=' . $draftId)->fetchColumn() === 0, 'Hapus gagal.');
+rejects_guide(fn() => change_document_guide($pdo, $draftId, 4, 1, null));
+function escape(string $value): string { return kiosk_escape($value); }
+function csrf_token(): string { return 'test'; }
+$guideId = $id;
+$guideError = '';
+$guideModalOpen = true;
+$guideForm = $pdo->query('SELECT * FROM document_guides WHERE id=' . $id)->fetch();
+$managedGuides = $pdo->query('SELECT * FROM document_guides ORDER BY sort_order,name,id')->fetchAll();
+ob_start(); require dirname(__DIR__) . '/app/views/admin-document-guides.php'; $html = ob_get_clean();
+foreach (['id="guide-table"', 'id="guide-add"', 'id="guide-dialog"', 'open data-auto-open', 'role="switch"', 'category-dialog-body', 'category-dialog-footer', 'form="document-guide-form"', 'button-danger-outline', '&lt;script&gt;nama&lt;/script&gt;'] as $markup) {
+    check_guide(str_contains($html, $markup), 'Kontrol admin/escaping hilang: ' . $markup);
+}
+check_guide(!str_contains($html, 'confirm_delete') && !str_contains($html, '<script>nama'), 'Hapus langsung/escaping salah.');
+$guideModalOpen = false;
+$managedGuides = [];
+ob_start(); require dirname(__DIR__) . '/app/views/admin-document-guides.php'; $html = ob_get_clean();
+check_guide(!str_contains($html, 'open data-auto-open') && !str_contains($html, 'colspan='), 'Daftar kosong merusak tabel/modal.');
 fwrite(STDOUT, "PASS: migrasi, seed idempoten, data terpisah, rupiah, validasi hukum, publikasi, CRUD, konflik, audit, rollback, tabel, dan escaping.\n");

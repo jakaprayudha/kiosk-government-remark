@@ -52,6 +52,7 @@ function validate_document_guide(array $input): array
 function save_document_guide(PDO $pdo, array $input, int $id, int $version, int $adminId): int
 {
     $data = validate_document_guide($input);
+    if ($id < 0 || ($id > 0 && $version < 1)) throw new DomainException('ID atau versi panduan tidak valid.');
     $pdo->beginTransaction();
     try {
         if ($id === 0) {
@@ -68,6 +69,45 @@ function save_document_guide(PDO $pdo, array $input, int $id, int $version, int 
         $pdo->prepare("INSERT INTO audit_logs (user_id, action, entity_type, entity_id, summary) VALUES (?, 'document_guide_saved', 'document_guide', ?, 'Persyaratan, biaya, dan dasar hukum pengurusan diperbarui.')")->execute([$adminId, $id]);
         $pdo->commit();
         return $id;
+    } catch (Throwable $error) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        throw $error;
+    }
+}
+
+function change_document_guide(PDO $pdo, int $id, int $version, int $adminId, ?int $active): void
+{
+    if ($id < 1 || $version < 1 || ($active !== null && !in_array($active, [0, 1], true))) {
+        throw new DomainException('ID, versi atau status panduan tidak valid.');
+    }
+    $pdo->beginTransaction();
+    try {
+        $pdo->exec('UPDATE document_guides SET version=version WHERE 0');
+        if ($active === 1) {
+            $query = $pdo->prepare('SELECT * FROM document_guides WHERE id=? AND version=?');
+            $query->execute([$id, $version]);
+            $row = $query->fetch(PDO::FETCH_ASSOC);
+            if (!$row) throw new DomainException('Data telah berubah atau tidak ditemukan. Muat ulang terlebih dahulu.');
+            $row['fee_amount'] = $row['fee_amount'] === null ? '' : (string) $row['fee_amount'];
+            foreach (['is_demo', 'fee_verified', 'is_published'] as $key) {
+                if ((int) $row[$key] === 1) $row[$key] = '1';
+                else unset($row[$key]);
+            }
+            validate_document_guide([...$row, 'is_published' => '1']);
+        }
+        if ($active === null) {
+            $query = $pdo->prepare('DELETE FROM document_guides WHERE id=? AND version=?');
+            $query->execute([$id, $version]);
+        } else {
+            $query = $pdo->prepare('UPDATE document_guides SET is_published=?,version=version+1,updated_at=CURRENT_TIMESTAMP WHERE id=? AND version=?');
+            $query->execute([$active, $id, $version]);
+        }
+        if ($query->rowCount() !== 1) throw new DomainException('Data telah berubah atau tidak ditemukan. Muat ulang terlebih dahulu.');
+        $pdo->prepare('INSERT INTO audit_logs(user_id,action,entity_type,entity_id,summary) VALUES(?,?,?,?,?)')->execute([
+            $adminId, $active === null ? 'document_guide_deleted' : 'document_guide_status', 'document_guide', $id,
+            $active === null ? 'Panduan persyaratan dan biaya dihapus.' : 'Status publik panduan persyaratan dan biaya diperbarui.',
+        ]);
+        $pdo->commit();
     } catch (Throwable $error) {
         if ($pdo->inTransaction()) $pdo->rollBack();
         throw $error;

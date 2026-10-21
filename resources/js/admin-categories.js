@@ -1,8 +1,9 @@
 import { DataTable } from 'simple-datatables';
 
 const serviceTable = document.querySelector('#service-table');
-const table = document.querySelector('#category-table') || serviceTable;
-const entity = serviceTable ? 'layanan' : 'kategori';
+const guideTable = document.querySelector('#guide-table');
+const table = document.querySelector('#category-table') || serviceTable || guideTable;
+const entity = serviceTable ? 'layanan' : guideTable ? 'panduan' : 'kategori';
 if (table) {
     new DataTable(table, {
         perPage: 10,
@@ -18,8 +19,8 @@ if (table) {
             info: `Menampilkan {start}–{end} dari {rows} ${entity}`,
         },
         columns: [
-            { select: serviceTable ? [2] : [1, 3], type: 'number' },
-            { select: serviceTable ? 5 : 4, sortable: false, searchable: false },
+            { select: serviceTable ? [2] : guideTable ? [2, 3] : [1, 3], type: 'number' },
+            { select: serviceTable || guideTable ? 5 : 4, sortable: false, searchable: false },
         ],
     });
     const search = document.querySelector('.category-table .datatable-input');
@@ -31,6 +32,43 @@ if (table) {
             input.form.requestSubmit();
         }
     });
+}
+
+const guideDialog = document.querySelector('#guide-dialog');
+const guideForm = document.querySelector('#document-guide-form');
+const guideAdd = document.querySelector('#guide-add');
+if (guideDialog && guideForm && guideAdd) {
+    guideAdd.addEventListener('click', (event) => {
+        event.preventDefault();
+        guideForm.reset();
+        guideForm.action = guideAdd.href.replace('&new=1', '');
+        guideForm.querySelectorAll('input:not([type=hidden]),textarea').forEach((input) => {
+            if (input.type === 'checkbox') input.checked = input.name === 'is_demo';
+            else input.value = '';
+        });
+        guideForm.elements.namedItem('version').value = '0';
+        guideForm.elements.namedItem('region').value = 'Kabupaten Serdang Bedagai';
+        guideForm.elements.namedItem('sort_order').value = '0';
+        guideDialog.querySelectorAll('.admin-error').forEach((error) => error.remove());
+        document.querySelector('#guide-dialog-title').textContent = 'Tambah pengurusan dokumen';
+        guideDialog.showModal();
+        guideForm.elements.namedItem('name').focus();
+    });
+    guideDialog.querySelectorAll('[data-guide-close]').forEach((close) => close.addEventListener('click', (event) => {
+        event.preventDefault();
+        guideDialog.close();
+    }));
+    guideDialog.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            guideDialog.close();
+        }
+    });
+    guideDialog.addEventListener('close', () => guideAdd.focus());
+    if (guideDialog.hasAttribute('data-auto-open')) {
+        guideDialog.removeAttribute('open');
+        guideDialog.showModal();
+    }
 }
 
 const serviceDialog = document.querySelector('#service-dialog');

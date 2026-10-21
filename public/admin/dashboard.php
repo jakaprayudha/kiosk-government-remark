@@ -41,7 +41,8 @@ if ($module === 'dashboard') {
 $now = new DateTimeImmutable('now', new DateTimeZone('Asia/Jakarta'));
 $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => 'Reset password',
     'service_settings' => 'Pengaturan layanan', 'submission_status' => 'Status pengajuan',
-    'document_guide_saved' => 'Persyaratan & biaya', 'complaint_status' => 'Tindak lanjut pengaduan', 'queue_update' => 'Antrean DEMO',
+    'document_guide_saved' => 'Persyaratan & biaya', 'document_guide_status' => 'Status panduan', 'document_guide_deleted' => 'Panduan dihapus',
+    'complaint_status' => 'Tindak lanjut pengaduan', 'queue_update' => 'Antrean DEMO',
     'category_saved' => 'Kategori disimpan', 'category_deleted' => 'Kategori dihapus',
     'service_saved' => 'Layanan disimpan', 'service_deleted' => 'Layanan dihapus', 'service_status' => 'Status layanan'];
 ?>
@@ -52,7 +53,7 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f5f7fb">
     <title><?= escape($page['label']) ?> — Admin KIOSK Kecamatan</title>
-    <?php if (in_array($module, ['categories', 'services'], true)): ?>
+    <?php if (in_array($module, ['categories', 'services', 'document-guides'], true)): ?>
         <link rel="stylesheet" href="../assets/css/admin-categories.css?v=<?= filemtime(dirname(__DIR__) . '/assets/css/admin-categories.css') ?>">
         <script src="../assets/js/admin-categories.js?v=<?= filemtime(dirname(__DIR__) . '/assets/js/admin-categories.js') ?>" defer></script>
     <?php endif; ?>
