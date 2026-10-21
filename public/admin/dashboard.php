@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__, 2) . '/app/bootstrap.php';
 require_once dirname(__DIR__, 2) . '/app/admin-navigation.php';
+require_once dirname(__DIR__, 2) . '/app/audit.php';
 $admin = require_admin(true);
 $navigation = admin_navigation();
 $module = $_GET['module'] ?? 'dashboard';
@@ -26,6 +27,7 @@ if ($module === 'services') require dirname(__DIR__, 2) . '/app/admin-service-se
 if ($module === 'document-guides') require dirname(__DIR__, 2) . '/app/admin-document-guides.php';
 if ($module === 'announcements') require dirname(__DIR__, 2) . '/app/admin-announcements.php';
 if ($module === 'reports') require dirname(__DIR__, 2) . '/app/admin-reports.php';
+if ($module === 'audit') require dirname(__DIR__, 2) . '/app/admin-audit.php';
 if (in_array($module, ['office', 'users'], true)) require dirname(__DIR__, 2) . '/app/admin-office.php';
 $stats = null;
 $events = [];
@@ -56,14 +58,7 @@ if ($module === 'dashboard') {
     )->fetchAll();
 }
 $now = new DateTimeImmutable('now', new DateTimeZone('Asia/Jakarta'));
-$actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => 'Reset password',
-    'service_settings' => 'Pengaturan layanan', 'submission_status' => 'Status pengajuan',
-    'document_guide_saved' => 'Persyaratan & biaya', 'document_guide_status' => 'Status panduan', 'document_guide_deleted' => 'Panduan dihapus',
-    'complaint_status' => 'Tindak lanjut pengaduan', 'queue_update' => 'Antrean DEMO',
-    'category_saved' => 'Kategori disimpan', 'category_deleted' => 'Kategori dihapus',
-    'service_saved' => 'Layanan disimpan', 'service_deleted' => 'Layanan dihapus', 'service_status' => 'Status layanan',
-    'announcement_save' => 'Pengumuman disimpan', 'announcement_toggle' => 'Status pengumuman', 'announcement_delete' => 'Pengumuman dihapus',
-    'office_master' => 'Profil/desa/sarana', 'office_device' => 'Penetapan KIOSK'];
+$actionLabels = audit_action_labels();
 ?>
 <!doctype html>
 <html lang="id">
@@ -99,7 +94,7 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
                    <?= $module === $key ? 'aria-current="page"' : '' ?>>
                     <?= admin_icon($item['icon']) ?>
                     <span><?= escape($item['label']) ?></span>
-                    <?php if (!in_array($key, ['dashboard', 'categories', 'submissions', 'complaints', 'queues', 'services', 'document-guides', 'announcements', 'office', 'users', 'reports'], true)): ?><span class="planned-dot" title="Modul belum tersedia"><span class="sr-only">Belum tersedia</span></span><?php endif; ?>
+                    <?php if (!in_array($key, ['dashboard', 'categories', 'submissions', 'complaints', 'queues', 'services', 'document-guides', 'announcements', 'office', 'users', 'reports', 'audit'], true)): ?><span class="planned-dot" title="Modul belum tersedia"><span class="sr-only">Belum tersedia</span></span><?php endif; ?>
                 </a>
             <?php endforeach; ?>
         </nav>
@@ -206,6 +201,8 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
                 <?php require dirname(__DIR__, 2) . '/app/views/admin-office.php'; ?>
             <?php elseif ($module === 'reports'): ?>
                 <?php require dirname(__DIR__, 2) . '/app/views/admin-reports.php'; ?>
+            <?php elseif ($module === 'audit'): ?>
+                <?php require dirname(__DIR__, 2) . '/app/views/admin-audit.php'; ?>
             <?php else: ?>
                 <section class="panel placeholder-panel">
                     <span class="placeholder-icon"><?= admin_icon($page['icon']) ?></span>

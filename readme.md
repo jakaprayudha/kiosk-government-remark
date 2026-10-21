@@ -61,6 +61,8 @@ Setelah beberapa saat tidak ada aktivitas, sistem menampilkan konfirmasi lalu ke
 6. Admin melihat laporan berdasarkan periode, jenis layanan, status, dan waktu penyelesaian; ekspor hanya untuk kebutuhan yang berwenang.
 7. Aktivitas penting dicatat pada audit log. Admin dapat menonaktifkan akun petugas dan mengubah kata sandi.
 
+Menu `admin/dashboard.php?module=audit` tersedia khusus admin pusat untuk membaca audit SQLite: waktu WIB, nama/username, aktivitas, objek/ID, dan ringkasan. Filter periode bawaan bulan berjalan (tanggal akhir inklusif), aktivitas, pencarian literal nama/username/ringkasan/jenis objek, urutan terbaru/terlama, dan pagination server 20 baris. Filter aktivitas/urutan langsung memuat ulang; pencarian menggunakan tombol Cari atau Enter. Nama/username mengikuti akun terkini; penghapusan akun tidak menghapus audit, tetapi identitas akun tidak lagi tersedia. Menu ini tidak menyediakan edit/hapus dan bukan pencatatan seluruh klik atau kunjungan publik. Tidak ada migrasi tambahan. Uji: `php tests/audit.php`.
+
 ## 6. Fitur panel admin dan master data
 
 - **Kategori layanan:** nama, slug, ikon, urutan, status aktif.

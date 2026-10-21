@@ -15,7 +15,7 @@ function admin_navigation(): array
         'queues' => ['label' => 'Antrean & jadwal', 'group' => 'OPERASIONAL', 'icon' => 'calendar', 'description' => 'Kelola instansi, layanan, jadwal berkuota, dan panggilan simulasi DEMO lokal. Belum terintegrasi ke antrean resmi.'],
         'users' => ['label' => 'Akun & petugas', 'group' => 'ADMINISTRASI', 'icon' => 'users', 'description' => 'Admin pusat mengelola akun admin setiap kecamatan, password dan status akses wilayah.'],
         'reports' => ['label' => 'Laporan', 'group' => 'ADMINISTRASI', 'icon' => 'chart', 'description' => 'Ringkasan pengajuan, pengaduan dan pemesanan antrean menurut periode WIB, status terkini dan layanan.'],
-        'audit' => ['label' => 'Audit aktivitas', 'group' => 'ADMINISTRASI', 'icon' => 'clock', 'description' => 'Telusuri riwayat aktivitas penting pengelola. Aktivitas terakhir sudah tersedia di dashboard; halaman audit lengkap menyusul.'],
+        'audit' => ['label' => 'Audit aktivitas', 'group' => 'ADMINISTRASI', 'icon' => 'clock', 'description' => 'Telusuri riwayat aktivitas pengelola dengan filter periode, aktivitas, dan pencarian.'],
         'settings' => ['label' => 'Pengaturan KIOSK', 'group' => 'ADMINISTRASI', 'icon' => 'settings', 'description' => 'Atur preferensi KIOSK, timeout sesi publik, dan kebijakan retensi pada tahap berikutnya.'],
     ];
 }
