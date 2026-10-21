@@ -48,9 +48,9 @@ try {
         'INSERT INTO services
          (category_id, name, slug, summary, description, eligibility, fee_text,
           estimated_time, office_unit, service_location, is_published, sort_order,
-          accepts_submissions, camera_enabled, is_demo)
+          accepts_submissions, camera_enabled, is_demo, requires_name, requires_birth_date, requires_face, requires_nik)
          VALUES (:category_id, :name, :slug, :summary, :description, :eligibility,
-                 :fee_text, :estimated_time, :office_unit, :service_location, 1, :sort_order, 1, 1, 1)
+                 :fee_text, :estimated_time, :office_unit, :service_location, 1, :sort_order, 1, 1, 1, 1, 1, 1, :requires_nik)
          ON CONFLICT(slug) DO NOTHING'
     );
     $insertRequirement = $pdo->prepare(
@@ -73,6 +73,7 @@ try {
             'office_unit' => 'DEMO - Unit pelayanan contoh, bukan unit resmi.',
             'service_location' => 'DEMO - Loket contoh. Lokasi dan kanal resmi harus dikonfirmasi kepada petugas.',
             'sort_order' => $index + 1,
+            'requires_nik' => $service['slug'] === 'demo-legalisasi-dokumen' ? 1 : 0,
         ]);
         if ($insertService->rowCount() === 0) {
             continue;

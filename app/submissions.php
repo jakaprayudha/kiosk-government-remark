@@ -50,6 +50,24 @@ function validate_submission(array $service, array $input): array
     if (($input['consent'] ?? '') !== '1' || ($input['confirmed'] ?? '') !== '1') {
         throw new DomainException('Persetujuan privasi dan pemeriksaan ringkasan wajib dilakukan.');
     }
+    foreach (['nik', 'birth_date'] as $field) {
+        if (isset($input[$field]) && !is_string($input[$field])) throw new DomainException('Isian identitas tidak valid.');
+        $result[$field] = trim($input[$field] ?? '');
+    }
+    if ((int) $service['requires_nik'] === 1) {
+        if (!preg_match('/^[0-9]{16}$/', $result['nik'])) throw new DomainException('NIK wajib berisi tepat 16 digit. Format bukan verifikasi Dukcapil.');
+    } elseif ($result['nik'] !== '') {
+        throw new DomainException('Layanan ini tidak meminta NIK. Jangan kirim NIK.');
+    }
+    if ((int) $service['requires_birth_date'] === 1) {
+        $date = DateTimeImmutable::createFromFormat('!Y-m-d', $result['birth_date'], new DateTimeZone('Asia/Jakarta'));
+        if (!$date || $date->format('Y-m-d') !== $result['birth_date'] || $result['birth_date'] < '1900-01-01'
+            || $result['birth_date'] > (new DateTimeImmutable('now', new DateTimeZone('Asia/Jakarta')))->format('Y-m-d')) {
+            throw new DomainException('Tanggal lahir harus valid (YYYY-MM-DD), tidak di masa depan.');
+        }
+    } elseif ($result['birth_date'] !== '') {
+        throw new DomainException('Layanan ini tidak meminta tanggal lahir.');
+    }
     return $result;
 }
 
@@ -62,16 +80,19 @@ function create_submission(PDO $pdo, array $service, array $input, string $reque
         return $code;
     }
     $data = validate_submission($service, $input);
+    $faceCount = count(array_filter($photos, static fn(array $photo): bool => ($photo['document_name'] ?? '') === 'Foto wajah pemohon' && $photo['requirement_id'] === null));
+    if ((int) $service['requires_face'] === 1 && $faceCount !== 1) throw new DomainException('Ambil dan gunakan satu foto wajah sebelum mengirim.');
+    if ((int) $service['requires_face'] !== 1 && $faceCount !== 0) throw new DomainException('Foto wajah tidak diminta untuk layanan ini.');
     $code = strtoupper(bin2hex(random_bytes(10)));
     $pdo->beginTransaction();
     try {
         $insert = $pdo->prepare(
             'INSERT INTO submissions (public_code, pin_hash, request_key, service_id, service_name, is_demo,
-             name, contact, description, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+             name, contact, description, expires_at, nik, birth_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         );
         $insert->execute([$code, password_hash($pin, PASSWORD_DEFAULT), $requestKey, $service['id'], $service['name'],
             $service['is_demo'], $data['name'], $data['contact'], $data['description'],
-            gmdate('Y-m-d H:i:s', time() + (int) $service['retention_days'] * 86400)]);
+            gmdate('Y-m-d H:i:s', time() + (int) $service['retention_days'] * 86400), $data['nik'], $data['birth_date']]);
         $id = (int) $pdo->lastInsertId();
         $pdo->prepare("INSERT INTO submission_events (submission_id, new_status, public_message) VALUES (?, 'new', ?)")
             ->execute([$id, 'Pengajuan tersimpan dan menunggu pemeriksaan petugas.']);
@@ -87,7 +108,7 @@ function create_submission(PDO $pdo, array $service, array $input, string $reque
     }
 }
 
-function change_submission_status(PDO $pdo, int $id, string $expected, string $next, string $publicNote, string $internalNote, int $adminId): void
+function change_submission_status(PDO $pdo, int $id, string $expected, string $next, string $publicNote, string $internalNote, int $adminId, ?array $letter = null): void
 {
     if (!in_array($next, submission_transitions($expected), true)) {
         throw new DomainException('Perubahan status tidak diizinkan.');
@@ -100,12 +121,25 @@ function change_submission_status(PDO $pdo, int $id, string $expected, string $n
     }
     $pdo->beginTransaction();
     try {
+        if ($next === 'completed' && $letter === null) throw new DomainException('Unggah PDF surat final yang telah disahkan untuk menyelesaikan layanan.');
+        if ($next !== 'completed' && $letter !== null) throw new DomainException('Surat final hanya boleh diterbitkan saat status Selesai.');
         $update = $pdo->prepare('UPDATE submissions SET status = ?, public_note = ?, internal_note = ?, updated_at = CURRENT_TIMESTAMP,
             closed_at = CASE WHEN ? IN (\'completed\', \'rejected\') THEN CURRENT_TIMESTAMP ELSE NULL END
             WHERE id = ? AND status = ? AND expires_at > CURRENT_TIMESTAMP');
         $update->execute([$next, $publicNote, $internalNote, $next, $id, $expected]);
         if ($update->rowCount() !== 1) {
             throw new DomainException('Data berubah atau telah melewati retensi. Muat ulang sebelum memperbarui.');
+        }
+        if ($next === 'completed') {
+            if (!preg_match('/^[a-f0-9]{48}\.pdf$/', $letter['stored_name']) || $letter['size_bytes'] < 5) throw new DomainException('Surat final tidak valid.');
+            $serviceQuery = $pdo->prepare('SELECT service_id FROM submissions WHERE id = ?');
+            $serviceQuery->execute([$id]);
+            $serviceId = (int) $serviceQuery->fetchColumn();
+            $pdo->prepare('INSERT INTO service_pickup_sequences (service_id, last_number) VALUES (?, 1) ON CONFLICT(service_id) DO UPDATE SET last_number = last_number + 1')->execute([$serviceId]);
+            $numberQuery = $pdo->prepare('SELECT last_number FROM service_pickup_sequences WHERE service_id = ?');
+            $numberQuery->execute([$serviceId]);
+            $pickupNumber = sprintf('L%d-%06d', $serviceId, (int) $numberQuery->fetchColumn());
+            $pdo->prepare('INSERT INTO submission_letters (submission_id, stored_name, size_bytes, pickup_number, approved_by) VALUES (?, ?, ?, ?, ?)')->execute([$id, $letter['stored_name'], $letter['size_bytes'], $pickupNumber, $adminId]);
         }
         $pdo->prepare('INSERT INTO submission_events (submission_id, old_status, new_status, public_message, internal_note, changed_by) VALUES (?, ?, ?, ?, ?, ?)')
             ->execute([$id, $expected, $next, $publicNote, $internalNote, $adminId]);

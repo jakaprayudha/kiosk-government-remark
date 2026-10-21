@@ -17,15 +17,19 @@ function delete_submission_photos(array $photos): void
     }
 }
 
-function store_submission_photos(array $files, array $requirements, bool $enabled): array
+function store_submission_photos(array $files, array $requirements, bool $enabled, bool $requiresFace = false): array
 {
-    if ($files === []) return [];
-    if (!$enabled) throw new DomainException('Foto tidak diaktifkan untuk layanan ini.');
-    if (!isset($files['error']) || !is_array($files['error']) || count($files['error']) > 3) {
-        throw new DomainException('Maksimal tiga foto dokumen.');
+    if ($files === []) {
+        if ($requiresFace) throw new DomainException('Foto wajah wajib diambil melalui kamera.');
+        return [];
+    }
+    if (!$enabled && !$requiresFace) throw new DomainException('Foto tidak diaktifkan untuk layanan ini.');
+    if (!isset($files['error']) || !is_array($files['error']) || count($files['error']) > ($requiresFace ? 4 : 3)) {
+        throw new DomainException('Maksimal tiga foto dokumen dan satu foto wajah jika diminta.');
     }
     if (!extension_loaded('gd')) throw new RuntimeException('Ekstensi GD diperlukan untuk memproses foto.');
-    $allowed = array_column($requirements, 'name', 'id');
+    $allowed = $enabled ? array_column($requirements, 'name', 'id') : [];
+    if ($requiresFace) $allowed['face'] = 'Foto wajah pemohon';
     $photos = [];
     try {
         foreach ($files['error'] as $requirementId => $uploadError) {
@@ -61,7 +65,7 @@ function store_submission_photos(array $files, array $requirements, bool $enable
             }
             $filename = bin2hex(random_bytes(24)) . '.jpg';
             $path = $directory . '/' . $filename;
-            $photo = ['requirement_id' => (int) $requirementId, 'document_name' => $allowed[$requirementId], 'stored_name' => $filename];
+            $photo = ['requirement_id' => $requirementId === 'face' ? null : (int) $requirementId, 'document_name' => $allowed[$requirementId], 'stored_name' => $filename];
             $photos[] = $photo;
             // Re-encode to discard embedded metadata and non-image payloads.
             if (!imagejpeg($image, $path, 85) || !chmod($path, 0600)) {
@@ -69,6 +73,7 @@ function store_submission_photos(array $files, array $requirements, bool $enable
             }
             $photos[array_key_last($photos)]['size_bytes'] = filesize($path);
         }
+        if ($requiresFace && !in_array('Foto wajah pemohon', array_column($photos, 'document_name'), true)) throw new DomainException('Foto wajah wajib diambil dan digunakan.');
         return $photos;
     } catch (Throwable $error) {
         delete_submission_photos($photos);

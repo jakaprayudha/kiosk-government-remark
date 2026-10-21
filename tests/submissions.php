@@ -4,6 +4,7 @@ require_once dirname(__DIR__) . '/app/migrations.php';
 require_once dirname(__DIR__) . '/app/service-catalog.php';
 require_once dirname(__DIR__) . '/app/submissions.php';
 require_once dirname(__DIR__) . '/app/submission-photos.php';
+require_once dirname(__DIR__) . '/app/submission-letters.php';
 
 function check_submission(bool $condition, string $message): void
 {
@@ -32,6 +33,16 @@ rejects(fn() => validate_submission($service, [...$input, 'confirmed' => '0']), 
 rejects(fn() => validate_submission([...$service, 'requires_name' => 1], $input), 'Nama wajib tidak diperiksa.');
 rejects(fn() => validate_submission([...$service, 'requires_contact' => 1], $input), 'Kontak wajib tidak diperiksa.');
 rejects(fn() => validate_submission($service, [...$input, 'description' => '']), 'Uraian wajib tidak diperiksa.');
+$identityService = [...$service, 'requires_nik' => 1, 'requires_birth_date' => 1, 'requires_face' => 1];
+$identityInput = [...$input, 'nik' => '0000000000000000', 'birth_date' => '2000-02-29'];
+check_submission(validate_submission($identityService, $identityInput)['birth_date'] === '2000-02-29', 'Tanggal kabisat valid harus diterima.');
+foreach (['123', '12345678901234567', '000000000000000x'] as $nik) rejects(fn() => validate_submission($identityService, [...$identityInput, 'nik' => $nik]), 'Format NIK salah harus ditolak.');
+foreach (['2001-02-29', '2100-01-01', '1899-12-31', '', '2000-2-29'] as $birth) rejects(fn() => validate_submission($identityService, [...$identityInput, 'birth_date' => $birth]), 'Tanggal lahir salah harus ditolak.');
+rejects(fn() => validate_submission($service, [...$input, 'nik' => '0000000000000000']), 'NIK yang tidak diminta tidak boleh disimpan.');
+rejects(fn() => validate_submission($service, [...$input, 'birth_date' => '2000-01-01']), 'Tanggal lahir yang tidak diminta tidak boleh disimpan.');
+rejects(fn() => create_submission($pdo, $identityService, $identityInput, 'missing-face', '123456', []), 'Foto wajah wajib harus diperiksa server.');
+rejects(fn() => store_submission_photos([], [], false, true), 'Foto wajib kosong harus ditolak.');
+rejects(fn() => store_submission_letter(['error' => UPLOAD_ERR_INI_SIZE]), 'PDF terlalu besar harus ditolak.');
 $code = create_submission($pdo, $service, $input, 'request-test', '123456', []);
 check_submission((bool) preg_match('/^[A-F0-9]{20}$/', $code), 'Format tiket salah.');
 check_submission(create_submission($pdo, $service, $input, 'request-test', '123456', []) === $code, 'Kirim ulang harus mengembalikan tiket lama.');
@@ -45,7 +56,12 @@ rejects(fn() => change_submission_status($pdo, (int) $row['id'], 'reviewing', 'c
 rejects(fn() => change_submission_status($pdo, (int) $row['id'], 'reviewing', 'needs_info', '', '', 1), 'Alasan publik wajib.');
 change_submission_status($pdo, (int) $row['id'], 'reviewing', 'needs_info', 'Bawa dokumen contoh', 'Internal', 1);
 change_submission_status($pdo, (int) $row['id'], 'needs_info', 'in_progress', 'Diproses', '', 1);
-change_submission_status($pdo, (int) $row['id'], 'in_progress', 'completed', 'Selesai', '', 1);
+rejects(fn() => change_submission_status($pdo, (int) $row['id'], 'in_progress', 'completed', 'Selesai', '', 1), 'Selesai tanpa PDF harus ditolak.');
+check_submission(public_submission_letter($pdo, $code) === null, 'Surat/antrean tidak boleh tersedia sebelum selesai.');
+$letter = ['stored_name' => str_repeat('a', 48) . '.pdf', 'size_bytes' => 100];
+change_submission_status($pdo, (int) $row['id'], 'in_progress', 'completed', 'Selesai', '', 1, $letter);
+$publishedLetter = public_submission_letter($pdo, $code);
+check_submission($publishedLetter['pickup_number'] === 'L1-000001', 'Nomor antrean pertama salah.');
 check_submission($pdo->query('SELECT closed_at FROM submissions')->fetchColumn() !== null, 'Status akhir harus menyimpan waktu tutup.');
 check_submission((int) $pdo->query('SELECT COUNT(*) FROM submission_events')->fetchColumn() === 5, 'Riwayat lengkap wajib tersimpan.');
 rejects(fn() => change_submission_status($pdo, (int) $row['id'], 'completed', 'reviewing', '', '', 1), 'Status akhir tidak boleh dibuka ulang.');
@@ -68,8 +84,48 @@ rejects(fn() => change_submission_status($pdo, $expired, 'new', 'reviewing', '',
 $pdo->prepare('DELETE FROM submissions WHERE id = ? AND expires_at <= CURRENT_TIMESTAMP')->execute([$expired]);
 check_submission((int) $pdo->query('SELECT COUNT(*) FROM submission_attachments')->fetchColumn() === 0, 'Lampiran kedaluwarsa harus ikut terhapus.');
 check_submission((int) $pdo->query('SELECT COUNT(*) FROM submission_events')->fetchColumn() === 5, 'Riwayat kedaluwarsa harus ikut terhapus.');
+$secondCode = create_submission($pdo, $service, $input, 'second-ready', '123456', []);
+$secondId = (int) $pdo->query("SELECT id FROM submissions WHERE request_key = 'second-ready'")->fetchColumn();
+change_submission_status($pdo, $secondId, 'new', 'reviewing', '', '', 1);
+change_submission_status($pdo, $secondId, 'reviewing', 'in_progress', '', '', 1);
+try {
+    change_submission_status($pdo, $secondId, 'in_progress', 'completed', '', '', 999, ['stored_name' => str_repeat('b', 48) . '.pdf', 'size_bytes' => 100]);
+    throw new RuntimeException('Audit/petugas salah harus menggagalkan penerbitan surat.');
+} catch (PDOException $error) {
+    check_submission(public_submission_letter($pdo, $secondCode) === null, 'Surat gagal tidak boleh terbit.');
+    check_submission((int) $pdo->query('SELECT last_number FROM service_pickup_sequences')->fetchColumn() === 1, 'Nomor antrean gagal tidak boleh terpakai.');
+}
+change_submission_status($pdo, $secondId, 'in_progress', 'completed', '', '', 1, ['stored_name' => str_repeat('b', 48) . '.pdf', 'size_bytes' => 100]);
+check_submission(public_submission_letter($pdo, $secondCode)['pickup_number'] === 'L1-000002', 'Antrean layanan harus bertambah unik.');
+$pdo->prepare("UPDATE submissions SET expires_at = datetime('now', '-1 day') WHERE id = ?")->execute([$secondId]);
+check_submission(public_submission_letter($pdo, $secondCode) === null, 'Surat kedaluwarsa tidak boleh diakses.');
+$pdo->prepare('DELETE FROM submissions WHERE id = ?')->execute([$secondId]);
+check_submission((int) $pdo->query('SELECT COUNT(*) FROM submission_letters')->fetchColumn() === 1, 'Surat harus ikut terhapus dengan pengajuan.');
 for ($i = 0; $i < 10; $i++) public_attempt($pdo, 'lookup', 'test-device');
 rejects(fn() => public_attempt($pdo, 'lookup', 'test-device'), 'Pembatasan cek tiket tidak bekerja.');
 rejects(fn() => store_submission_photos(['error' => [1 => UPLOAD_ERR_OK]], [], false), 'Kamera nonaktif harus menolak lampiran.');
 rejects(fn() => store_submission_photos(['error' => [999 => UPLOAD_ERR_OK]], [], true), 'Dokumen dari layanan lain harus ditolak.');
-fwrite(STDOUT, "PASS: validasi, persetujuan, idempotensi, hash PIN, snapshot DEMO, transisi, riwayat, konflik, penutupan, rollback, retensi, pembatasan percobaan, dan kontrol lampiran.\n");
+function kiosk_escape(string $value): string { return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
+$selected = 'pengajuan';
+$transactionService = null;
+$transactionError = '';
+$transactionCatalog = [$service];
+ob_start();
+require dirname(__DIR__) . '/app/views/public-submissions.php';
+$html = ob_get_clean();
+check_submission(str_contains($html, 'Pilih layanan yang ingin diajukan') && str_contains($html, 'menu=pengajuan&amp;layanan=1') && !str_contains($html, 'class="menu-card"'), 'Pengajuan harus memakai pilihan layanan tersendiri, bukan katalog informasi.');
+$transactionService = $identityService;
+$transactionRequirements = [];
+$formKey = 'test-key';
+$_SESSION = ['csrf' => 'test-token'];
+$input = $identityInput;
+ob_start();
+require dirname(__DIR__) . '/app/views/public-submissions.php';
+$html = ob_get_clean();
+foreach (['name="nik"', 'name="birth_date"', 'value="face"', 'Keyboard layar sentuh'] as $text) check_submission(str_contains($html, $text), 'Form identitas/wajah/keyboard hilang: ' . $text);
+$transactionService = $service;
+ob_start();
+require dirname(__DIR__) . '/app/views/public-submissions.php';
+$html = ob_get_clean();
+check_submission(!str_contains($html, 'name="nik"') && !str_contains($html, 'name="birth_date"') && !str_contains($html, 'value="face"'), 'Identitas/wajah yang tidak diminta tidak boleh ditampilkan.');
+fwrite(STDOUT, "PASS: pilihan pengajuan terpisah, identitas bersyarat, foto wajah wajib, persetujuan, idempotensi, hash PIN, transisi, PDF final, antrean unik, konflik, rollback, retensi, dan kontrol lampiran.\n");

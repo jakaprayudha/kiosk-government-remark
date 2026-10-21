@@ -37,6 +37,7 @@ $menus = [
         'steps' => ['Sentuh salah satu menu di beranda. Pada keyboard, gunakan Tab untuk berpindah dan Enter untuk membuka.', 'Gunakan tombol Teks besar untuk memperbesar tulisan. Tombol Beranda mengembalikan Anda ke menu utama.', 'Jika perlu pendampingan, temui petugas di lokasi. KIOSK belum memiliki tombol pemanggilan petugas. Setelah tidak aktif, layar akan kembali ke beranda.']],
 ];
 $menus['pengajuan']['status'] = 'Tersedia sesuai layanan';
+$menus['pengajuan']['text'] = 'Pilih layanan, isi formulir, lalu pantau surat dan nomor pengambilan.';
 $menus['status']['status'] = 'Scan tiket + PIN';
 $menus['bukti'] = ['title' => 'Bukti pengajuan', 'text' => '', 'icon' => 'document', 'tone' => 'blue', 'status' => ''];
 $selected = $_GET['menu'] ?? '';
@@ -156,7 +157,7 @@ function kiosk_icon(string $name): string
     <?php endif; ?>
     <link rel="stylesheet" href="assets/css/kiosk.css?v=<?= filemtime(__DIR__ . '/assets/css/kiosk.css') ?>">
     <script src="assets/js/kiosk.js?v=<?= filemtime(__DIR__ . '/assets/js/kiosk.js') ?>" defer></script>
-    <script src="assets/js/service-devices.js" defer></script>
+    <script src="assets/js/service-devices.js?v=<?= filemtime(__DIR__ . '/assets/js/service-devices.js') ?>" defer></script>
     <?php if ($selected === 'kantor' && $office !== null): ?>
         <script src="assets/js/office-map.js?v=<?= filemtime(__DIR__ . '/assets/js/office-map.js') ?>" defer></script>
     <?php endif; ?>
@@ -180,11 +181,11 @@ function kiosk_icon(string $name): string
                 <div class="menu-grid">
                     <?php foreach ($menus as $key => $item): ?>
                         <?php if ($key === 'bukti') continue; ?>
-                        <a class="menu-card" href="kiosk.php?menu=<?= $key === 'pengajuan' ? 'layanan' : kiosk_escape($key) ?>" data-menu-voice="<?= kiosk_escape($item['title']) ?>"><span class="card-top"><span class="menu-icon <?= kiosk_escape($item['tone']) ?>"><?= kiosk_icon($item['icon']) ?></span><span class="menu-status"><?= kiosk_escape($item['status']) ?></span></span><h3><?= kiosk_escape($item['title']) ?></h3><p><?= kiosk_escape($item['text']) ?></p><span class="card-action">Buka informasi <?= kiosk_icon('arrow') ?></span></a>
+                        <a class="menu-card" href="kiosk.php?menu=<?= kiosk_escape($key) ?>" data-menu-voice="<?= kiosk_escape($item['title']) ?>"><span class="card-top"><span class="menu-icon <?= kiosk_escape($item['tone']) ?>"><?= kiosk_icon($item['icon']) ?></span><span class="menu-status"><?= kiosk_escape($item['status']) ?></span></span><h3><?= kiosk_escape($item['title']) ?></h3><p><?= kiosk_escape($item['text']) ?></p><span class="card-action">Buka informasi <?= kiosk_icon('arrow') ?></span></a>
                     <?php endforeach; ?>
                 </div>
             </section>
-            <aside class="public-notice"><?= kiosk_icon('help') ?><p><strong>Informasi untuk Anda</strong> Katalog menampilkan layanan yang dipublikasikan pengelola. Pengajuan tersedia sesuai pengaturan layanan; data DEMO hanya untuk simulasi. Informasi kecamatan menyediakan profil dan peta desa sesuai data yang dipublikasikan. Antrean belum tersedia.</p></aside>
+            <aside class="public-notice"><?= kiosk_icon('help') ?><p><strong>Informasi untuk Anda</strong> Katalog menampilkan layanan yang dipublikasikan pengelola. Pengajuan tersedia sesuai pengaturan layanan; data DEMO hanya untuk simulasi. Surat final dan nomor pengambilan tersedia setelah layanan diselesaikan admin. Antrean umum dan janji layanan belum tersedia.</p></aside>
         <?php elseif ($selected === 'syarat'): ?>
             <?php require dirname(__DIR__) . '/app/views/public-document-guides.php'; ?>
         <?php elseif ($selected === 'kantor'): ?>

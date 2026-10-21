@@ -9,6 +9,7 @@ function public_service_catalog(PDO $pdo, string $today, string $category = '', 
                    services.valid_from, services.valid_until, services.updated_at,
                    services.accepts_submissions, services.requires_name, services.requires_contact,
                    services.camera_enabled, services.retention_days, services.is_demo,
+                   services.requires_nik, services.requires_birth_date, services.requires_face,
                    service_categories.name AS category_name, service_categories.slug AS category_slug
             FROM services
             JOIN service_categories ON service_categories.id = services.category_id

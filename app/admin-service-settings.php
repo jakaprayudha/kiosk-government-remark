@@ -8,12 +8,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $retention = filter_var($_POST['retention_days'] ?? '', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 365]]);
         if (!$settingId || !$retention) throw new DomainException('Layanan atau retensi tidak valid.');
         $flags = [];
-        foreach (['accepts_submissions', 'requires_name', 'requires_contact', 'camera_enabled'] as $key) {
+        foreach (['accepts_submissions', 'requires_name', 'requires_contact', 'camera_enabled', 'requires_nik', 'requires_birth_date', 'requires_face'] as $key) {
             if (isset($_POST[$key]) && $_POST[$key] !== '1') throw new DomainException('Pengaturan tidak valid.');
             $flags[] = isset($_POST[$key]) ? 1 : 0;
         }
         db()->beginTransaction();
-        $update = db()->prepare('UPDATE services SET accepts_submissions = ?, requires_name = ?, requires_contact = ?, camera_enabled = ?, retention_days = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?');
+        $update = db()->prepare('UPDATE services SET accepts_submissions = ?, requires_name = ?, requires_contact = ?, camera_enabled = ?, requires_nik = ?, requires_birth_date = ?, requires_face = ?, retention_days = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?');
         $update->execute([...$flags, $retention, $settingId]);
         if ($update->rowCount() !== 1) throw new DomainException('Layanan tidak ditemukan.');
         db()->prepare("INSERT INTO audit_logs (user_id, action, entity_type, entity_id, summary) VALUES (?, 'service_settings', 'service', ?, 'Pengaturan transaksi layanan diperbarui.')")->execute([$admin['id'], $settingId]);
@@ -30,4 +30,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $settingsError = 'Pengaturan gagal disimpan. Muat ulang dan hubungi pengelola bila masalah berlanjut.';
     }
 }
-$configuredServices = db()->query('SELECT id, name, accepts_submissions, requires_name, requires_contact, camera_enabled, retention_days FROM services ORDER BY name')->fetchAll();
+$configuredServices = db()->query('SELECT id, name, accepts_submissions, requires_name, requires_contact, camera_enabled, requires_nik, requires_birth_date, requires_face, retention_days FROM services ORDER BY name')->fetchAll();

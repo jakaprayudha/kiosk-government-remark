@@ -9,7 +9,7 @@
             <form method="post" class="admin-form">
                 <input type="hidden" name="csrf_token" value="<?= escape(csrf_token()) ?>">
                 <input type="hidden" name="service_id" value="<?= (int) $configured['id'] ?>">
-                <?php foreach (['accepts_submissions' => 'Terima pengajuan di KIOSK', 'requires_name' => 'Nama wajib', 'requires_contact' => 'Kontak wajib', 'camera_enabled' => 'Izinkan foto dokumen persyaratan (opsional)'] as $key => $label): ?>
+                <?php foreach (['accepts_submissions' => 'Terima pengajuan di KIOSK', 'requires_name' => 'Nama wajib', 'requires_contact' => 'Kontak wajib', 'camera_enabled' => 'Izinkan foto dokumen persyaratan (opsional)', 'requires_nik' => 'Minta NIK (wajib 16 digit; hanya jika diperlukan)', 'requires_birth_date' => 'Minta tanggal lahir (wajib)', 'requires_face' => 'Wajib foto wajah dari kamera (tanpa pengenalan wajah otomatis)'] as $key => $label): ?>
                     <label><input type="checkbox" name="<?= escape($key) ?>" value="1" <?= (int) $configured[$key] === 1 ? 'checked' : '' ?>> <?= escape($label) ?></label>
                 <?php endforeach; ?>
                 <label>Retensi pengajuan baru (1–365 hari)<input type="number" name="retention_days" min="1" max="365" required value="<?= (int) $configured['retention_days'] ?>"></label>

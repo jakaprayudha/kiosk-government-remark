@@ -78,7 +78,8 @@ document.querySelector('#start-camera')?.addEventListener('click', async () => {
     cameraMessage.textContent = 'Menunggu izin dan gambar kamera…';
     try {
         if (!navigator.mediaDevices?.getUserMedia) throw new Error('CameraUnsupported');
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1600 }, height: { ideal: 1200 } }, audio: false });
+        const isFace = document.querySelector('#photo-requirement')?.value === 'face';
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: isFace ? 'user' : 'environment' }, width: { ideal: 1600 }, height: { ideal: 1200 } }, audio: false });
         if (generation !== cameraGeneration) {
             stream.getTracks().forEach((track) => track.stop());
             return;
@@ -90,7 +91,7 @@ document.querySelector('#start-camera')?.addEventListener('click', async () => {
         if (generation !== cameraGeneration) return;
         document.querySelector('#capture-photo').hidden = false;
         document.querySelector('#stop-camera').hidden = false;
-        cameraMessage.textContent = 'Posisikan dokumen, pastikan terbaca, lalu Ambil foto. Jangan gunakan identitas asli untuk DEMO.';
+        cameraMessage.textContent = isFace ? 'Posisikan wajah pada kamera, lalu Ambil foto. Untuk DEMO hanya gunakan foto contoh.' : 'Posisikan dokumen, pastikan terbaca, lalu Ambil foto. Jangan gunakan identitas asli untuk DEMO.';
     } catch (error) {
         if (generation !== cameraGeneration) return;
         stopCamera();
@@ -99,6 +100,13 @@ document.querySelector('#start-camera')?.addEventListener('click', async () => {
     }
 });
 document.querySelector('#stop-camera')?.addEventListener('click', stopCamera);
+document.querySelector('#photo-requirement')?.addEventListener('change', () => {
+    stopCamera();
+    if (pendingPhoto) URL.revokeObjectURL(pendingPhoto.url);
+    pendingPhoto = null;
+    document.querySelector('#capture-preview').hidden = true;
+    cameraMessage.textContent = 'Jenis foto diubah. Aktifkan kamera kembali untuk jenis foto yang dipilih.';
+});
 
 document.querySelector('#capture-photo')?.addEventListener('click', async () => {
     const generation = cameraGeneration;
@@ -157,8 +165,8 @@ function renderPhotos() {
 }
 document.querySelector('#accept-photo')?.addEventListener('click', () => {
     if (!pendingPhoto) return;
-    if (!photos.has(pendingPhoto.id) && photos.size >= 3) {
-        cameraMessage.textContent = 'Maksimal tiga foto. Hapus salah satu sebelum menambah.';
+    if (pendingPhoto.id !== 'face' && !photos.has(pendingPhoto.id) && [...photos.keys()].filter(id => id !== 'face').length >= 3) {
+        cameraMessage.textContent = 'Maksimal tiga foto dokumen. Hapus salah satu sebelum menambah.';
         return;
     }
     const previous = photos.get(pendingPhoto.id);
@@ -180,9 +188,20 @@ document.querySelector('#review-submission')?.addEventListener('click', () => {
         document.querySelector('#submission-message').textContent = 'Isi uraian dan setujui privasi sebelum memeriksa ringkasan.';
         return;
     }
+    const invalidField = [...form.querySelectorAll('input:not([name="confirmed"]), textarea')].find(field => !field.checkValidity());
+    if (invalidField) {
+        invalidField.reportValidity();
+        document.querySelector('#submission-message').textContent = 'Lengkapi isian wajib sesuai format sebelum memeriksa ringkasan.';
+        return;
+    }
+    if (document.querySelector('#photo-requirement option[value="face"]') && !photos.has('face')) {
+        document.querySelector('#submission-message').textContent = 'Ambil dan gunakan foto wajah yang diwajibkan layanan.';
+        return;
+    }
     const fields = document.querySelector('#review-fields');
     fields.replaceChildren();
-    for (const [key, label] of [['name', 'Nama'], ['contact', 'Kontak'], ['description', 'Uraian']]) {
+    for (const [key, label] of [['name', 'Nama'], ['nik', 'NIK'], ['birth_date', 'Tanggal lahir'], ['contact', 'Kontak'], ['description', 'Uraian']]) {
+        if (!form.elements.namedItem(key)) continue;
         const dt = document.createElement('dt');
         dt.textContent = label;
         const dd = document.createElement('dd');

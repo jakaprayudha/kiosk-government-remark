@@ -5,6 +5,7 @@ require_once __DIR__ . '/database.php';
 require_once __DIR__ . '/service-catalog.php';
 require_once __DIR__ . '/submissions.php';
 require_once __DIR__ . '/submission-photos.php';
+require_once __DIR__ . '/submission-letters.php';
 
 $transactionError = '';
 $transactionService = null;
@@ -13,12 +14,18 @@ $receipt = null;
 $ticketStatus = null;
 $ticketEvents = [];
 $formKey = '';
-$input = ['name' => '', 'contact' => '', 'description' => ''];
+$transactionCatalog = [];
+$finalLetter = null;
+$input = ['name' => '', 'contact' => '', 'description' => '', 'nik' => '', 'birth_date' => ''];
 $today = $now->format('Y-m-d');
 
 try {
     $pdo = open_database();
     if ($selected === 'pengajuan') {
+        if (!isset($_GET['layanan']) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+            $transactionCatalog = array_values(array_filter(public_service_catalog($pdo, $today), static fn(array $service): bool => (int) $service['accepts_submissions'] === 1));
+            return;
+        }
         $id = filter_var($_GET['layanan'] ?? '', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
         if ($id === false) throw new DomainException('Pilih layanan dari katalog untuk memulai pengajuan.');
         $matches = public_service_catalog($pdo, $today, '', $id);
@@ -44,7 +51,7 @@ try {
             }
             validate_submission($transactionService, $_POST);
             public_attempt($pdo, 'create', (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
-            $photos = store_submission_photos($_FILES['photos'] ?? [], $transactionRequirements, (int) $transactionService['camera_enabled'] === 1);
+            $photos = store_submission_photos($_FILES['photos'] ?? [], $transactionRequirements, (int) $transactionService['camera_enabled'] === 1, (int) $transactionService['requires_face'] === 1);
             try {
                 $code = create_submission($pdo, $transactionService, $_POST, $formKey, $request['pin'], $photos);
             } catch (Throwable $error) {
@@ -89,6 +96,8 @@ try {
         if (!password_verify($pin, $hash) || !$match) throw new DomainException('Tiket atau PIN tidak sesuai.');
         unset($match['pin_hash']);
         $ticketStatus = $match;
+        $finalLetter = public_submission_letter($pdo, $code);
+        if ($finalLetter !== null) $_SESSION['letter_access'] = [$code => time() + 300];
         $eventsQuery = $pdo->prepare('SELECT new_status, public_message, created_at FROM submission_events WHERE submission_id = ? ORDER BY id');
         $eventsQuery->execute([$match['id']]);
         $ticketEvents = $eventsQuery->fetchAll();
