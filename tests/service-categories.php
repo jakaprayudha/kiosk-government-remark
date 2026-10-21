@@ -76,6 +76,7 @@ category_check(str_contains($html, 'id="category-table"') && str_contains($html,
 category_check(!str_contains($html, 'confirm_delete') && str_contains($html, 'button-danger-outline'), 'Hapus langsung/outline merah tidak tersedia.');
 category_check(str_contains($html, 'class="category-dialog-body"') && str_contains($html, 'class="category-dialog-footer"'), 'Struktur scroll modal tidak tersedia.');
 category_check(str_contains($html, 'type="submit" form="category-form"'), 'Simpan di footer tidak terhubung ke form.');
+category_check(str_contains($html, 'class="category-status-form"') && str_contains($html, 'value="toggle"') && str_contains($html, 'role="switch"'), 'Toggle status tabel/form tidak tersedia.');
 $categoryId = 0;
 $categoryError = '';
 $_GET = [];

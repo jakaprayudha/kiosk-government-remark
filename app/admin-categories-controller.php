@@ -18,6 +18,12 @@ try {
         if (!verify_csrf_token()) throw new DomainException('Sesi formulir berakhir. Muat ulang halaman.');
         $version = filter_var($_POST['version'] ?? '', FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
         if ($version === false) throw new DomainException('Versi formulir tidak valid.');
+        $input = $_POST + ['is_active' => '0'];
+        if (($_POST['action'] ?? '') === 'toggle') {
+            if ($categoryId < 1) throw new DomainException('ID kategori tidak valid.');
+            save_service_category(db(), [...$categoryForm, 'is_active' => $input['is_active']], $categoryId, $version, (int) $admin['id']);
+            redirect_to('/admin/dashboard.php?module=categories&saved=1');
+        }
         if (($_POST['action'] ?? '') === 'delete') {
             if ($categoryId < 1) throw new DomainException('ID kategori tidak valid.');
             delete_service_category(db(), $categoryId, $version, (int) $admin['id']);
@@ -25,11 +31,11 @@ try {
         }
         if (($_POST['action'] ?? '') !== 'save') throw new DomainException('Aksi kategori tidak valid.');
         foreach (['name','slug','description','icon','sort_order','is_active'] as $key) {
-            if (is_string($_POST[$key] ?? null)) $categoryForm[$key] = $_POST[$key];
+            if (is_string($input[$key] ?? null)) $categoryForm[$key] = $input[$key];
         }
         // Preserve the submitted version after conflicts; never overwrite newer data on retry.
         $categoryForm['version'] = $version;
-        $saved = save_service_category(db(), $_POST, $categoryId, $version, (int) $admin['id']);
+        save_service_category(db(), $input, $categoryId, $version, (int) $admin['id']);
         redirect_to('/admin/dashboard.php?module=categories&saved=1');
     }
 } catch (DomainException $error) {

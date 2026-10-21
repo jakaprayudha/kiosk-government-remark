@@ -10,7 +10,13 @@
             <?php foreach ($categoryRecords as $record): ?><tr>
                 <td><?= escape($record['name']) ?><span class="table-note"><?= escape($record['slug']) ?></span></td>
                 <td><?= (int) $record['sort_order'] ?></td>
-                <td><span class="badge <?= (int) $record['is_active'] === 1 ? 'badge-live' : '' ?>"><?= (int) $record['is_active'] === 1 ? 'Aktif' : 'Nonaktif' ?></span></td>
+                <td>
+                    <form method="post" action="dashboard.php?module=categories&amp;id=<?= (int) $record['id'] ?>" class="category-status-form">
+                        <input type="hidden" name="csrf_token" value="<?= escape(csrf_token()) ?>"><input type="hidden" name="action" value="toggle"><input type="hidden" name="version" value="<?= (int) $record['version'] ?>">
+                        <label class="category-switch"><input type="checkbox" role="switch" name="is_active" value="1" aria-label="Aktifkan kategori <?= escape($record['name']) ?>" <?= (int) $record['is_active'] === 1 ? 'checked' : '' ?>><span class="category-switch-track" aria-hidden="true"></span><span><?= (int) $record['is_active'] === 1 ? 'Aktif' : 'Nonaktif' ?></span></label>
+                        <noscript><button class="button" type="submit">Simpan status</button></noscript>
+                    </form>
+                </td>
                 <td><?= (int) $record['service_count'] ?></td>
                 <td><div class="category-actions"><a class="button category-edit" href="dashboard.php?module=categories&amp;id=<?= (int) $record['id'] ?>" aria-haspopup="dialog" aria-controls="category-dialog">Ubah<span class="sr-only"> <?= escape($record['name']) ?></span></a>
                     <?php if ((int) $record['service_count'] === 0): ?>
@@ -26,7 +32,7 @@
         <noscript><p>Aktifkan JavaScript untuk pencarian, pengurutan, dan pagination tabel.</p><?php if ($categoryRecords === []): ?><p>Belum ada kategori.</p><?php endif; ?></noscript>
     </div>
 </section>
-<dialog id="category-dialog" class="category-dialog" aria-labelledby="category-dialog-title" <?= ($categoryId > 0 && !isset($_GET['saved'])) || isset($_GET['new']) || ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && ($_POST['action'] ?? '') === 'save' ? 'open data-auto-open' : '' ?>>
+<dialog id="category-dialog" class="category-dialog" aria-labelledby="category-dialog-title" <?= ($categoryId > 0 && !isset($_GET['saved']) && ($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') || isset($_GET['new']) || ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && ($_POST['action'] ?? '') === 'save' ? 'open data-auto-open' : '' ?>>
     <div class="category-dialog-heading">
         <h2 id="category-dialog-title"><?= $categoryId > 0 ? 'Ubah kategori layanan' : 'Tambah kategori layanan' ?></h2>
         <a class="button" data-category-close href="dashboard.php?module=categories" aria-label="Tutup formulir kategori">Tutup</a>
@@ -42,7 +48,8 @@
         <label for="category-description">Deskripsi (maksimal 1500 byte)</label><textarea id="category-description" name="description" rows="3" maxlength="1500"><?= escape($categoryForm['description']) ?></textarea>
         <label for="category-icon">Ikon kategori</label><select id="category-icon" name="icon"><?php foreach (service_category_icons() as $value => $label): ?><option value="<?= escape($value) ?>" <?= $categoryForm['icon'] === $value ? 'selected' : '' ?>><?= escape($label) ?></option><?php endforeach; ?></select>
         <label for="category-order">Urutan (0–9999, angka kecil tampil lebih awal)</label><input id="category-order" type="number" name="sort_order" min="0" max="9999" required value="<?= (int) $categoryForm['sort_order'] ?>">
-        <label for="category-active">Status</label><select id="category-active" name="is_active"><option value="1">Aktif</option><option value="0" <?= (int) $categoryForm['is_active'] === 0 ? 'selected' : '' ?>>Nonaktif</option></select>
+        <label class="category-switch"><input id="category-active" type="checkbox" role="switch" name="is_active" value="1" <?= (int) $categoryForm['is_active'] === 1 ? 'checked' : '' ?>><span class="category-switch-track" aria-hidden="true"></span><span data-category-status-label><?= (int) $categoryForm['is_active'] === 1 ? 'Aktif' : 'Nonaktif' ?></span></label>
+        <p>Nonaktif: kategori dan seluruh layanan di dalamnya tidak tampil di publik KIOSK.</p>
     </form>
     <p>Kategori aktif baru tampil di filter publik setelah memiliki layanan yang dipublikasikan dan masih berlaku. Kategori kosong tidak tampil di publik.</p>
     <a class="button" href="../kiosk.php?menu=layanan" target="_blank" rel="noopener noreferrer">Lihat katalog publik (tab baru)</a>

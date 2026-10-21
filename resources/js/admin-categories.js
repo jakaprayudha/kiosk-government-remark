@@ -23,6 +23,12 @@ if (table) {
     const search = document.querySelector('.category-table .datatable-input');
     search?.setAttribute('aria-label', 'Cari kategori');
     document.querySelector('.category-table .datatable-selector')?.setAttribute('aria-label', 'Jumlah kategori per halaman');
+    table.addEventListener('change', (event) => {
+        const input = event.target;
+        if (input instanceof HTMLInputElement && input.closest('.category-status-form')) {
+            input.form.requestSubmit();
+        }
+    });
 }
 
 const dialog = document.querySelector('#category-dialog');
@@ -39,6 +45,8 @@ if (dialog && form && add) {
         })) {
             form.elements.namedItem(key).value = value;
         }
+        form.elements.namedItem('is_active').checked = true;
+        dialog.querySelector('[data-category-status-label]').textContent = 'Aktif';
         dialog.querySelectorAll('.admin-error').forEach((error) => error.remove());
         document.querySelector('#category-dialog-title').textContent = 'Tambah kategori layanan';
         dialog.showModal();
@@ -50,6 +58,9 @@ if (dialog && form && add) {
         });
     });
     dialog.addEventListener('close', () => add.focus());
+    form.elements.namedItem('is_active').addEventListener('change', (event) => {
+        dialog.querySelector('[data-category-status-label]').textContent = event.target.checked ? 'Aktif' : 'Nonaktif';
+    });
     dialog.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
             event.preventDefault();
