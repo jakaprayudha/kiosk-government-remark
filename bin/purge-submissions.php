@@ -26,6 +26,8 @@ try {
     fwrite(STDOUT, "{$count} pengajuan kedaluwarsa beserta foto dan riwayat dihapus.\n");
     $complaints = purge_expired_complaints($pdo);
     fwrite(STDOUT, "{$complaints} pengaduan/aspirasi kedaluwarsa beserta riwayat dihapus.\n");
+    $bookings = $pdo->exec('DELETE FROM queue_bookings WHERE expires_at<=CURRENT_TIMESTAMP');
+    fwrite(STDOUT, "{$bookings} bukti antrean DEMO kedaluwarsa beserta riwayat dihapus; jadwal dan penghitung nomor dipertahankan.\n");
 } catch (Throwable $error) {
     error_log('Penghapusan retensi gagal: ' . get_class($error));
     fwrite(STDERR, "Penghapusan retensi gagal. Periksa izin database/storage dan jalankan ulang.\n");

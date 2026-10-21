@@ -12,7 +12,7 @@ function admin_navigation(): array
         'office' => ['label' => 'Profil kecamatan', 'group' => 'KONTEN KIOSK', 'icon' => 'building', 'description' => 'Perbarui profil kantor, alamat, jam layanan, kontak, dan kanal resmi.'],
         'submissions' => ['label' => 'Pengajuan layanan', 'group' => 'OPERASIONAL', 'icon' => 'inbox', 'description' => 'Tinjau pengajuan, penugasan petugas, status, dan riwayat tindak lanjut.'],
         'complaints' => ['label' => 'Pengaduan & aspirasi', 'group' => 'OPERASIONAL', 'icon' => 'chat', 'description' => 'Tinjau masukan masyarakat dengan catatan publik dan internal yang terpisah.'],
-        'queues' => ['label' => 'Antrean & jadwal', 'group' => 'OPERASIONAL', 'icon' => 'calendar', 'description' => 'Atur jadwal, kuota, loket, dan pemanggilan antrean layanan.'],
+        'queues' => ['label' => 'Antrean & jadwal', 'group' => 'OPERASIONAL', 'icon' => 'calendar', 'description' => 'Kelola instansi, layanan, jadwal berkuota, dan panggilan simulasi DEMO lokal. Belum terintegrasi ke antrean resmi.'],
         'users' => ['label' => 'Akun & petugas', 'group' => 'ADMINISTRASI', 'icon' => 'users', 'description' => 'Kelola akun internal, peran, dan status aktif petugas.'],
         'reports' => ['label' => 'Laporan', 'group' => 'ADMINISTRASI', 'icon' => 'chart', 'description' => 'Lihat ringkasan operasional berdasarkan periode, layanan, dan status.'],
         'audit' => ['label' => 'Audit aktivitas', 'group' => 'ADMINISTRASI', 'icon' => 'clock', 'description' => 'Telusuri riwayat aktivitas penting pengelola. Aktivitas terakhir sudah tersedia di dashboard; halaman audit lengkap menyusul.'],
