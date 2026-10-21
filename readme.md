@@ -293,6 +293,18 @@ QR dibuat dan dipindai secara lokal memakai `qrcode` dan `jsQR`; tidak mengirim 
 
 Uji regresi: `php tests/service-catalog.php`, `php tests/submissions.php`, dan `npm test` (129 variasi QR tiket). Uji penerimaan perangkat nyata tetap diperlukan untuk izin kamera, fokus scanner USB, ukuran kertas/driver printer, suara, dan domain yang dapat dijangkau HP.
 
+### Pengaduan & aspirasi
+
+`kiosk.php?menu=pengaduan` menerima laporan langsung ke SQLite, terpisah dari pengajuan layanan. Jalankan `php bin/migrate.php` untuk migrasi `009_complaints.sql`. Form meminta jenis (pengaduan/aspirasi), kategori, judul dan uraian; lokasi, nama dan kontak opsional. Tanpa nama/kontak diperbolehkan, tetapi bukan jaminan anonimitas jaringan: pembatasan percobaan memakai hash IP dan server dapat memiliki log akses. Tidak meminta NIK, foto, atau lampiran. Isian dibatasi server (judul 160, lokasi 240, nama/kontak 120, uraian 3000 byte); checkbox privasi dan pemeriksaan isi wajib.
+
+Pengiriman memakai CSRF, request key sesi dan transaksi idempoten. Bukti hanya tersedia pada sesi pengirim, memuat kode `AD-` + 20 karakter hex dan PIN enam digit yang dapat dicetak melalui dialog browser. PIN disimpan sebagai hash. Menu memakai dua tab navigasi terpisah: **Tulis laporan** (`menu=pengaduan`) dan **Cek tanggapan** (`menu=pengaduan&tab=tanggapan`). Hanya formulir tab aktif yang ditampilkan; pengecekan tidak ditumpuk di bawah formulir laporan. Pindah tab memuat halaman baru tanpa menyimpan draf. Hasil/error pencarian tetap di tab tanggapan, bukan Status pengajuan layanan. Pencarian wajib kode+PIN, hanya mengembalikan jenis/kategori, status dan riwayat tanggapan publik; tidak menampilkan kembali identitas, isi awal laporan, lokasi, atau catatan internal. Tidak ada daftar pengaduan publik. Batas per IP berbagi dengan pengajuan layanan: 5 pengiriman / 15 menit dan 10 pencarian / 15 menit. Semua halaman bersifat no-store; sesi berakhir membersihkan formulir, bukti dan hasil.
+
+Admin membuka `admin/dashboard.php?module=complaints` untuk daftar/filter berhalaman, detail laporan, tanggapan publik dan catatan internal terpisah. Alur: Diterima → Ditinjau → Ditindaklanjuti → Selesai; Diterima/Ditinjau/Ditindaklanjuti dapat ditutup sebagai Tidak dapat ditindaklanjuti dengan alasan publik. Saat Ditinjau/Ditindaklanjuti admin dapat menambah tanggapan tanpa mengubah status. Setiap pembaruan wajib tanggapan, memakai pemeriksaan versi untuk mencegah penimpaan bersamaan, dan mencatat audit tanpa isi laporan/identitas. Status akhir tidak dapat diubah.
+
+Retensi **180 hari sejak dikirim**, termasuk laporan selesai. Akses publik dan admin diblokir setelah kedaluwarsa. Jadwalkan `php bin/purge-submissions.php` setiap hari: kini juga menghapus pengaduan/aspirasi kedaluwarsa beserta riwayatnya. Perintah ini tidak memasang cron secara otomatis; pengelola harus menjadwalkannya dan memantau kegagalan. Backup/log perlu kebijakan retensi tersendiri. Database belum terenkripsi per kolom, sehingga kontrol akses perangkat dan backup tetap wajib.
+
+Ini bukan kanal darurat dan tidak terintegrasi otomatis dengan SP4N-LAPOR!, SMS/email, atau instansi lain. Tersimpan bukan berarti sudah ditinjau, diteruskan, atau dijamin selesai pada waktu tertentu. Pengelola wajib menetapkan petugas, dasar pemrosesan data dan prosedur tindak lanjut sebelum penggunaan operasional. Tidak ada dummy pengaduan yang disisipkan ke database produksi. Uji regresi: `php tests/complaints.php`.
+
 ## 10. Tahapan implementasi
 
 1. **Fondasi:** skema/migrasi SQLite, login admin, kontrol peran, audit log, dan pengelolaan profil kantor.

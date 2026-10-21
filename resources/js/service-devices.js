@@ -319,6 +319,7 @@ function releaseDevices() {
 window.addEventListener('pagehide', releaseDevices);
 document.addEventListener('kiosk-session-ended', () => {
     releaseDevices();
+    document.querySelectorAll('[data-private-form]').forEach((privateForm) => privateForm.reset());
     form?.reset();
     document.querySelector('#ticket-form')?.reset();
     document.querySelectorAll('.submission-form input:not([type="hidden"]), .submission-form textarea, .lookup-form input:not([type="hidden"])').forEach((input) => {

@@ -6,6 +6,7 @@ if (PHP_SAPI !== 'cli') {
 }
 require_once dirname(__DIR__) . '/app/database.php';
 require_once dirname(__DIR__) . '/app/submission-photos.php';
+require_once dirname(__DIR__) . '/app/complaints.php';
 
 try {
     $pdo = open_database();
@@ -23,6 +24,8 @@ try {
         $count += $delete->rowCount();
     }
     fwrite(STDOUT, "{$count} pengajuan kedaluwarsa beserta foto dan riwayat dihapus.\n");
+    $complaints = purge_expired_complaints($pdo);
+    fwrite(STDOUT, "{$complaints} pengaduan/aspirasi kedaluwarsa beserta riwayat dihapus.\n");
 } catch (Throwable $error) {
     error_log('Penghapusan retensi gagal: ' . get_class($error));
     fwrite(STDERR, "Penghapusan retensi gagal. Periksa izin database/storage dan jalankan ulang.\n");

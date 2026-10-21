@@ -39,6 +39,8 @@ $menus = [
 $menus['pengajuan']['status'] = 'Tersedia sesuai layanan';
 $menus['pengajuan']['text'] = 'Pilih layanan, isi formulir, lalu pantau surat dan nomor pengambilan.';
 $menus['status']['status'] = 'Scan tiket + PIN';
+$menus['pengaduan']['status'] = 'Kirim & cek tanggapan';
+$menus['pengaduan']['text'] = 'Sampaikan laporan atau usulan, boleh tanpa nama.';
 $menus['bukti'] = ['title' => 'Bukti pengajuan', 'text' => '', 'icon' => 'document', 'tone' => 'blue', 'status' => ''];
 $selected = $_GET['menu'] ?? '';
 if (!is_string($selected) || ($selected !== '' && !isset($menus[$selected]))) {
@@ -49,6 +51,7 @@ $page = $selected === '' ? null : $menus[$selected];
 $now = new DateTimeImmutable('now', new DateTimeZone('Asia/Jakarta'));
 $isTransaction = in_array($selected, ['pengajuan', 'status', 'bukti'], true);
 if ($isTransaction) require dirname(__DIR__) . '/app/public-submissions-controller.php';
+if ($selected === 'pengaduan') require dirname(__DIR__) . '/app/public-complaints-controller.php';
 $isCatalog = $selected === 'layanan';
 $documentGuides = [];
 $guidesError = '';
@@ -161,7 +164,7 @@ function kiosk_icon(string $name): string
     <?php if ($selected === 'kantor' && $office !== null): ?>
         <script src="assets/js/office-map.js?v=<?= filemtime(__DIR__ . '/assets/js/office-map.js') ?>" defer></script>
     <?php endif; ?>
-    <?php if ($isTransaction): ?><script src="assets/js/auth.js" defer></script><?php endif; ?>
+    <?php if ($isTransaction || $selected === 'pengaduan'): ?><script src="assets/js/auth.js" defer></script><?php endif; ?>
 </head>
 <body>
     <a class="skip-link" href="#konten-kiosk">Lewati ke konten utama</a>
@@ -186,6 +189,8 @@ function kiosk_icon(string $name): string
                 </div>
             </section>
             <aside class="public-notice"><?= kiosk_icon('help') ?><p><strong>Informasi untuk Anda</strong> Katalog menampilkan layanan yang dipublikasikan pengelola. Pengajuan tersedia sesuai pengaturan layanan; data DEMO hanya untuk simulasi. Surat final dan nomor pengambilan tersedia setelah layanan diselesaikan admin. Antrean umum dan janji layanan belum tersedia.</p></aside>
+        <?php elseif ($selected === 'pengaduan'): ?>
+            <?php require dirname(__DIR__) . '/app/views/public-complaints.php'; ?>
         <?php elseif ($selected === 'syarat'): ?>
             <?php require dirname(__DIR__) . '/app/views/public-document-guides.php'; ?>
         <?php elseif ($selected === 'kantor'): ?>

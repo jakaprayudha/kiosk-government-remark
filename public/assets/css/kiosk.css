@@ -70,6 +70,8 @@ h1, h2, h3, p { margin-top: 0; }
 .submission-choice strong { color: var(--blue); }
 .pickup-result { margin-block: 20px; padding: 20px; border: 1px solid var(--line); border-radius: 10px; background: #f4f7fc; }
 .status-entry-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-block: 22px; }
+.complaint-tabs { display: flex; gap: 8px; padding: 8px; margin-block: 24px; border: 1px solid var(--line); border-radius: 12px; background: #f4f7fc; }
+.complaint-tabs a { flex: 1; text-align: center; justify-content: center; }
 .qr-scanner-preview { position: relative; isolation: isolate; width: 100%; max-width: 560px; aspect-ratio: 1; margin-block: 18px; overflow: hidden; border-radius: 14px; background: #071525; }
 .qr-scanner-preview #qr-camera { display: block; width: 100%; height: 100%; max-height: none; margin: 0; border-radius: 0; object-fit: contain; }
 .qr-scanner-overlay { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; color: #fff; }
@@ -203,7 +205,7 @@ html { scroll-padding-top: 110px; }
 .privacy-notice h2 { font-size: 1.15rem; }
 .privacy-notice p, .submission-form > p { font-size: .85rem; color: #657b98; }
 .submission-form, .lookup-form { display: grid; gap: 12px; margin-top: 24px; }
-.submission-form input:not([type="checkbox"]):not([type="hidden"]), .submission-form textarea, .lookup-form input:not([type="hidden"]), .camera-section select { width: 100%; min-width: 0; min-height: 54px; padding: 13px; color: var(--ink); border: 1px solid #bdcde0; border-radius: 6px; background: #fff; font: inherit; }
+.submission-form input:not([type="checkbox"]):not([type="hidden"]), .submission-form textarea, .submission-form select, .lookup-form input:not([type="hidden"]), .camera-section select { width: 100%; min-width: 0; min-height: 54px; padding: 13px; color: var(--ink); border: 1px solid #bdcde0; border-radius: 6px; background: #fff; font: inherit; }
 .submission-form label, .lookup-form label { font-weight: 600; }
 .check-label { display: flex; align-items: start; gap: 12px; padding: 15px; border: 1px solid var(--line); border-radius: 6px; font-size: .9rem; }
 .check-label input { width: 24px; height: 24px; flex-shrink: 0; }

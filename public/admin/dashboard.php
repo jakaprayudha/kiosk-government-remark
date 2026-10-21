@@ -14,6 +14,7 @@ if (!is_string($module) || !isset($navigation[$module])) {
 
 $page = $navigation[$module];
 if ($module === 'submissions') require dirname(__DIR__, 2) . '/app/admin-submissions-controller.php';
+if ($module === 'complaints') require dirname(__DIR__, 2) . '/app/admin-complaints-controller.php';
 if ($module === 'services') require dirname(__DIR__, 2) . '/app/admin-service-settings.php';
 if ($module === 'document-guides') require dirname(__DIR__, 2) . '/app/admin-document-guides.php';
 $stats = null;
@@ -38,7 +39,7 @@ if ($module === 'dashboard') {
 $now = new DateTimeImmutable('now', new DateTimeZone('Asia/Jakarta'));
 $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => 'Reset password',
     'service_settings' => 'Pengaturan layanan', 'submission_status' => 'Status pengajuan',
-    'document_guide_saved' => 'Persyaratan & biaya'];
+    'document_guide_saved' => 'Persyaratan & biaya', 'complaint_status' => 'Tindak lanjut pengaduan'];
 ?>
 <!doctype html>
 <html lang="id">
@@ -70,7 +71,7 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
                    <?= $module === $key ? 'aria-current="page"' : '' ?>>
                     <?= admin_icon($item['icon']) ?>
                     <span><?= escape($item['label']) ?></span>
-                    <?php if (!in_array($key, ['dashboard', 'submissions', 'services', 'document-guides'], true)): ?><span class="planned-dot" title="Modul belum tersedia"><span class="sr-only">Belum tersedia</span></span><?php endif; ?>
+                    <?php if (!in_array($key, ['dashboard', 'submissions', 'complaints', 'services', 'document-guides'], true)): ?><span class="planned-dot" title="Modul belum tersedia"><span class="sr-only">Belum tersedia</span></span><?php endif; ?>
                 </a>
             <?php endforeach; ?>
         </nav>
@@ -145,7 +146,7 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
                             <li><span class="status-check" aria-hidden="true">✓</span><div><strong>Persyaratan & biaya</strong><p>Tambah, edit, dan publikasi referensi tersedia.</p></div></li>
                             <li><span class="status-check" aria-hidden="true">✓</span><div><strong>Pengajuan layanan</strong><p>Tiket, foto, dan tindak lanjut tersedia.</p></div></li>
                         </ul>
-                        <div class="notice"><strong>Pengajuan terhubung SQLite</strong><p>Periksa menu Pengajuan layanan untuk menindaklanjuti tiket. Pengaduan digital dan antrean masih menyusul.</p><a href="dashboard.php?module=submissions">Buka pengajuan →</a></div>
+                        <div class="notice"><strong>Pengajuan dan pengaduan terhubung SQLite</strong><p>Tindak lanjuti tiket layanan serta pengaduan/aspirasi dari menu operasional. Antrean umum masih menyusul.</p><a href="dashboard.php?module=complaints">Buka pengaduan →</a></div>
                     </section>
                 </div>
 
@@ -159,6 +160,8 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
                 </section>
             <?php elseif ($module === 'submissions'): ?>
                 <?php require dirname(__DIR__, 2) . '/app/views/admin-submissions.php'; ?>
+            <?php elseif ($module === 'complaints'): ?>
+                <?php require dirname(__DIR__, 2) . '/app/views/admin-complaints.php'; ?>
             <?php elseif ($module === 'services'): ?>
                 <?php require dirname(__DIR__, 2) . '/app/views/admin-service-settings.php'; ?>
             <?php elseif ($module === 'document-guides'): ?>
