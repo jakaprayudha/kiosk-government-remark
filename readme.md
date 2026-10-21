@@ -288,6 +288,7 @@ Alur masyarakat:
 Admin:
 
 - **Pengajuan layanan**: daftar berpaginasi, filter status, detail, foto privat melalui endpoint berautentikasi, dan riwayat. Catatan publik serta internal terpisah.
+- Filter status pengajuan langsung memuat daftar saat pilihan berubah dan kembali ke halaman pertama; tanpa JavaScript tersedia tombol fallback. Aksi **Periksa** berupa tombol biru, dan status pada daftar/detail/riwayat memakai badge berwarna dengan label teks (Baru biru, Ditinjau ungu, Perlu informasi kuning, Diproses toska, Selesai hijau, Ditolak merah).
 - Transisi: Baru → Ditinjau → Diproses → Selesai; dari Ditinjau/Diproses dapat meminta informasi; Ditolak dan Perlu informasi wajib alasan publik. Status akhir tidak dibuka ulang. Konflik pembaruan ditolak dan perubahan dicatat dalam audit.
 - **Layanan administrasi**: pengaturan `accepts_submissions`, `requires_name`, `requires_contact`, `camera_enabled`, `requires_nik`, `requires_birth_date`, `requires_face`, `retention_days` (1–365 hari). Default layanan baru: informasi saja, kamera mati, nama/kontak opsional, identitas tambahan/foto wajah tidak diminta, retensi 30 hari. Aktifkan transaksi hanya untuk layanan berwenang dan minta identitas tambahan hanya jika dasar pengelolaannya jelas. Retensi baru berlaku pada pengajuan berikutnya; snapshot nama layanan dan `is_demo` tersimpan pada tiket.
 - Enam layanan dummy yang telah di-seed diaktifkan untuk simulasi oleh migrasi. Gunakan data/dokumen contoh saja. Tidak ada pengajuan dikirim ke instansi eksternal.

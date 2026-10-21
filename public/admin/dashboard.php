@@ -67,7 +67,7 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
         <script src="../assets/js/admin-categories.js?v=<?= filemtime(dirname(__DIR__) . '/assets/js/admin-categories.js') ?>" defer></script>
     <?php endif; ?>
     <link rel="stylesheet" href="../assets/css/admin.css?v=<?= filemtime(dirname(__DIR__) . '/assets/css/admin.css') ?>">
-    <script src="../assets/js/admin.js" defer></script>
+    <script src="../assets/js/admin.js?v=<?= filemtime(dirname(__DIR__) . '/assets/js/admin.js') ?>" defer></script>
 </head>
 <body>
     <a class="skip-link" href="#admin-content">Lewati ke konten utama</a>

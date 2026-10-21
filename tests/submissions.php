@@ -155,4 +155,25 @@ ob_start();
 require dirname(__DIR__) . '/app/views/public-submissions.php';
 $html = ob_get_clean();
 check_submission(!str_contains($html, 'download=1') && str_contains($html, 'Surat final dan nomor antrean belum tersedia'), 'Tanpa surat final harus menampilkan keadaan belum tersedia.');
-fwrite(STDOUT, "PASS: pilihan pengajuan terpisah, identitas bersyarat, foto wajah wajib, persetujuan, idempotensi, hash PIN, transisi, PDF final, antrean unik, konflik, rollback, retensi, dan kontrol lampiran.\n");
+function escape(string $value): string { return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
+$adminError = '';
+$submission = null;
+$id = 0;
+$total = 6;
+$pageNumber = 1;
+$filterStatus = '';
+$records = [];
+foreach (submission_statuses() as $status => $label) {
+    $records[] = ['id' => count($records) + 1, 'public_code' => 'DEMO', 'is_demo' => 1,
+        'service_name' => '<script>service</script>', 'name' => 'Pemohon', 'status' => $status];
+}
+ob_start();
+require dirname(__DIR__) . '/app/views/admin-submissions.php';
+$html = ob_get_clean();
+foreach (submission_statuses() as $status => $label) {
+    check_submission(str_contains($html, 'class="submission-status submission-status-' . $status . '">' . $label . '</span>'), 'Badge admin hilang: ' . $status);
+}
+check_submission(str_contains($html, 'data-auto-submit') && str_contains($html, '<noscript><button'), 'Filter otomatis dan fallback harus tersedia.');
+check_submission(substr_count($html, 'class="button button-primary"') === 6, 'Semua aksi Periksa harus memiliki style tombol.');
+check_submission(!str_contains($html, '<script>service</script>'), 'Nama layanan admin harus di-escape.');
+fwrite(STDOUT, "PASS: pilihan pengajuan terpisah, identitas bersyarat, foto wajah wajib, persetujuan, idempotensi, hash PIN, transisi, PDF final, antrean unik, konflik, rollback, retensi, kontrol lampiran, filter dan badge admin.\n");

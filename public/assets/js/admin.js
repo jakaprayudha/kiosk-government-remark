@@ -1,6 +1,10 @@
 const menuButton = document.querySelector('.menu-button');
 const sidebar = document.querySelector('#admin-sidebar');
 
+document.querySelectorAll('select[data-auto-submit]').forEach((select) => {
+    select.addEventListener('change', () => select.form.requestSubmit());
+});
+
 function closeAdminMenu() {
     sidebar?.classList.remove('is-open');
     menuButton?.setAttribute('aria-expanded', 'false');
