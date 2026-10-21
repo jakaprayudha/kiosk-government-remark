@@ -4,6 +4,7 @@ require_once __DIR__ . '/queues.php';
 $queueAdminError = '';
 $queueEdit = null;
 $queueRows = [];
+$queueFilterSlots = [];
 $queueAdminTotal = 0;
 $queueAdminPage = max(1, filter_var($_GET['p'] ?? 1, FILTER_VALIDATE_INT) ?: 1);
 $queueView = $_GET['view'] ?? 'slots';
@@ -60,6 +61,11 @@ try {
         $queueRows = $q->fetchAll();
     }
     if ($editId > 0 && !$queueEdit) throw new DomainException('Data yang akan diubah tidak ditemukan. Pilih tanggal yang sesuai.');
+    if ($queueView === 'bookings') {
+        $q = db()->prepare('SELECT t.id,t.start_time,t.end_time,s.name AS service_name,a.name AS agency_name FROM queue_slots t JOIN queue_services s ON s.id=t.service_id JOIN queue_agencies a ON a.id=s.agency_id WHERE t.service_date=? ORDER BY t.start_time,t.id');
+        $q->execute([$queueDate]);
+        $queueFilterSlots = $q->fetchAll();
+    }
 } catch (DomainException $error) {
     http_response_code(422);
     $queueAdminError = $error->getMessage();
@@ -68,3 +74,13 @@ try {
     http_response_code(503);
     $queueAdminError = 'Data antrean tidak dapat dimuat. Hubungi pengelola database.';
 }
+$queueModalOpen = $queueView !== 'bookings' && (isset($_GET['new']) || $queueEdit !== null || $_SERVER['REQUEST_METHOD'] === 'POST');
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $queueAdminError !== '' && $queueView !== 'bookings') {
+    $queueFormFields = ['name','kind','description','address','agency_id','instructions','service_id','service_date','start_time','end_time','capacity','is_open','is_active'];
+    $queueFormValues = $queueEdit ?? [];
+    foreach ($queueFormFields as $field) {
+        if (is_string($_POST[$field] ?? null)) $queueFormValues[$field] = $_POST[$field];
+    }
+    if ($queueEdit !== null && is_string($_POST['version'] ?? null)) $queueFormValues['version'] = $_POST['version'];
+} else $queueFormValues = $queueEdit ?? [];
+$queueBaseUrl = 'dashboard.php?module=queues&view=' . $queueView . '&date=' . $queueDate . '&slot=' . ($queueSlotFilter ?? 0);

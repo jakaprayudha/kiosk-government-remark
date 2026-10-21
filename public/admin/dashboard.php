@@ -62,7 +62,7 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f5f7fb">
     <title><?= escape($page['label']) ?> — Admin KIOSK Kecamatan</title>
-    <?php if (in_array($module, ['categories', 'services', 'document-guides', 'announcements', 'office'], true)): ?>
+    <?php if (in_array($module, ['categories', 'services', 'document-guides', 'announcements', 'office', 'queues'], true)): ?>
         <link rel="stylesheet" href="../assets/css/admin-categories.css?v=<?= filemtime(dirname(__DIR__) . '/assets/css/admin-categories.css') ?>">
         <script src="../assets/js/admin-categories.js?v=<?= filemtime(dirname(__DIR__) . '/assets/js/admin-categories.js') ?>" defer></script>
     <?php endif; ?>

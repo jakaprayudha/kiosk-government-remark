@@ -88,6 +88,16 @@ h1, h2, h3, p { margin-top: 0; }
 .submission-status-in_progress { color: #0c626d; background: #e1f5f7; border-color: #a8dce2; }
 .submission-status-completed { color: #21653e; background: #e7f5ec; border-color: #afd8be; }
 .submission-status-rejected { color: #9c3030; background: #fdecec; border-color: #edbaba; }
+.queue-status-waiting { color: #1e4f91; background: #eaf2ff; border-color: #bdd3f3; }
+.queue-status-called { color: #694195; background: #f3ecfc; border-color: #dac7ed; }
+.queue-status-completed { color: #21653e; background: #e7f5ec; border-color: #afd8be; }
+.queue-status-cancelled, .queue-status-missed { color: #9c3030; background: #fdecec; border-color: #edbaba; }
+.queue-tabs { margin-bottom: 20px; }
+.queue-filter { flex-wrap: wrap; padding: 16px 20px; margin-bottom: 20px; border: 1px solid var(--line); border-radius: 9px; background: #fff; }
+.queue-filter input { max-width: 100%; padding: 10px; border: 1px solid #cdd8e8; border-radius: 5px; font: inherit; color: var(--ink); }
+.queue-filter select { max-width: 400px; }
+.queue-note { padding: 0 22px 16px; color: var(--muted); }
+.queue-booking-action { grid-template-columns: minmax(140px, 1fr) auto; align-items: center; }
 .table-scroll { overflow-x: auto; }
 .category-panel .panel-heading { flex-wrap: wrap; }
 .category-table { padding: 0 20px 16px; }

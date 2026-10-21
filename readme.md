@@ -382,6 +382,12 @@ Jalankan `php bin/seed-demo-complaints.php` untuk memasukkan SQL `database/seeds
 
 Pada `admin/dashboard.php?module=complaints`, nama pengadu dan kontak tampil langsung di kolom tersendiri, di samping judul, kategori, lokasi, kode, jenis dan waktu UTC. Tanpa nama ditulis **Anonim (nama tidak diisi)**; identitas/kontak tidak diverifikasi. Identitas ini hanya untuk admin, tidak ditambahkan ke hasil cek publik. Filter status otomatis memuat ulang tanpa tombol Terapkan (fallback tersedia tanpa JavaScript). Tombol Periksa biru dan badge warna pada daftar/detail/riwayat mengikuti style pengajuan. Tindak lanjut tetap memerlukan tanggapan publik, pemeriksaan versi, audit, dan transisi status yang sah. Uji: `php tests/complaints.php`.
 
+### Tampilan admin Antrean & jadwal
+
+Menu `admin/dashboard.php?module=queues` memakai tab Instansi, Layanan, Jadwal & kuota, serta Panggilan & pemesanan. Master instansi/layanan/jadwal memakai tabel search, sort dan pagination; tambah/ubah melalui modal dengan header dan footer tetap, isi dapat di-scroll, dan toggle publikasi/buka jadwal disimpan bersama form. Error membuka kembali modal dan mempertahankan input. Tidak menambahkan hapus data yang dapat merusak riwayat pemesanan.
+
+Filter tanggal WIB dan pemilih jadwal langsung memuat data saat berubah (fallback tombol tanpa JavaScript). Pemilih jadwal menampilkan instansi, layanan dan jam, bukan meminta ID manual; pergantian tanggal mengembalikan pilihan ke semua jadwal. Tanggal dipertahankan antar-tab. Status aktif/buka serta status pemesanan memakai badge berwarna dan label teks. Aksi Ubah, Panggilan dan Simpan tampil sebagai tombol. Daftar pemesanan tetap berpaginasi server, dengan aturan urutan panggilan, versi, kuota, waktu dan DEMO yang sama. Uji `php tests/queues.php`.
+
 ## 10. Tahapan implementasi
 
 1. **Fondasi:** skema/migrasi SQLite, login admin, kontrol peran, audit log, dan pengelolaan profil kantor.

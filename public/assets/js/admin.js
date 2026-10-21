@@ -1,8 +1,14 @@
 const menuButton = document.querySelector('.menu-button');
 const sidebar = document.querySelector('#admin-sidebar');
 
-document.querySelectorAll('select[data-auto-submit]').forEach((select) => {
-    select.addEventListener('change', () => select.form.requestSubmit());
+document.querySelectorAll('[data-auto-submit]').forEach((input) => {
+    input.addEventListener('change', () => {
+        if (input.id === 'queue-filter-date') {
+            const slot = input.form.elements.namedItem('slot');
+            if (slot) slot.value = '0';
+        }
+        if (input.form.reportValidity()) input.form.requestSubmit();
+    });
 });
 
 function closeAdminMenu() {

@@ -153,4 +153,35 @@ queue_check(str_contains($html, 'Kuota penuh') && !str_contains($html, 'Ambil no
 $queueSlots[0]['occupied'] = 0;
 ob_start(); require dirname(__DIR__) . '/app/views/public-queues.php'; $html = ob_get_clean();
 queue_check(str_contains($html, 'Sisa kuota 1 dari 1') && str_contains($html, 'Ambil nomor DEMO') && !str_contains($html, 'id="queue-code"'), 'UI jadwal tersedia salah.');
-echo "PASS: migrasi, pengelolaan, validasi jadwal, overlap, DEMO, idempotensi, PIN, kuota, pembatalan, nomor unik, urutan panggilan, konflik, rollback, instansi/layanan nonaktif, retensi, UI dan dua proses berebut kuota terakhir.\n";
+function escape(string $text): string { return htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
+function csrf_token(): string { return 'test'; }
+$queueAdminError = '';
+$queueEdit = null;
+$queueFormValues = [];
+$queueModalOpen = false;
+$queueDate = $date;
+$queueSlotFilter = 0;
+$queueFilterSlots = [];
+$queueAdminTotal = 0;
+$queueAdminPage = 1;
+$queueAgencies = $pdo->query('SELECT * FROM queue_agencies')->fetchAll();
+$queueServices = $pdo->query('SELECT s.*,a.name AS agency_name FROM queue_services s JOIN queue_agencies a ON a.id=s.agency_id')->fetchAll();
+foreach (['agencies','services','slots','bookings'] as $queueView) {
+    $queueBaseUrl = 'dashboard.php?module=queues&view=' . $queueView . '&date=' . $date;
+    $queueRows = $queueView === 'agencies' ? $queueAgencies : ($queueView === 'services' ? $queueServices : []);
+    ob_start(); require dirname(__DIR__) . '/app/views/admin-queues.php'; $html = ob_get_clean();
+    queue_check(str_contains($html, 'queue-tabs') && str_contains($html, '<th>Status</th>'), 'Navigasi/status admin hilang.');
+    if ($queueView !== 'bookings') {
+        foreach (['id="queue-table"', 'id="queue-dialog"', 'category-dialog-heading', 'category-dialog-body', 'category-dialog-footer', 'form="queue-form"', '+ Tambah data', 'role="switch"'] as $text) queue_check(str_contains($html, $text), 'UI master antrean hilang: ' . $text);
+    } else {
+        queue_check(str_contains($html, 'Semua jadwal') && str_contains($html, 'data-auto-submit') && !str_contains($html, 'ID jadwal (0 = semua)'), 'Filter jadwal harus mudah dibaca.');
+    }
+    queue_check(!str_contains($html, '<script>Contoh</script>'), 'Data admin harus di-escape.');
+}
+$queueView = 'agencies';
+$queueModalOpen = true;
+$queueFormValues = ['name' => '<script>tertahan</script>', 'kind' => 'hospital', 'address' => 'Alamat tertahan', 'description' => 'Deskripsi tertahan', 'is_active' => '0'];
+$queueRows = [];
+ob_start(); require dirname(__DIR__) . '/app/views/admin-queues.php'; $html = ob_get_clean();
+queue_check(str_contains($html, 'open data-auto-open') && str_contains($html, '&lt;script&gt;tertahan&lt;/script&gt;') && str_contains($html, 'Alamat tertahan'), 'Modal harus mempertahankan input setelah error.');
+echo "PASS: migrasi, pengelolaan, validasi jadwal, overlap, DEMO, idempotensi, PIN, kuota, pembatalan, nomor unik, urutan panggilan, konflik, rollback, instansi/layanan nonaktif, retensi, UI publik/admin, modal, filter, escaping dan dua proses berebut kuota terakhir.\n";

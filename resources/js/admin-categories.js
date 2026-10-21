@@ -4,8 +4,9 @@ const serviceTable = document.querySelector('#service-table');
 const guideTable = document.querySelector('#guide-table');
 const announcementTable = document.querySelector('#announcement-table');
 const officeTable = document.querySelector('#office-table');
-const table = document.querySelector('#category-table') || serviceTable || guideTable || announcementTable || officeTable;
-const entity = serviceTable ? 'layanan' : guideTable ? 'panduan' : announcementTable ? 'pengumuman' : officeTable ? 'data kecamatan' : 'kategori';
+const queueTable = document.querySelector('#queue-table');
+const table = document.querySelector('#category-table') || serviceTable || guideTable || announcementTable || officeTable || queueTable;
+const entity = serviceTable ? 'layanan' : guideTable ? 'panduan' : announcementTable ? 'pengumuman' : officeTable ? 'data kecamatan' : queueTable ? 'data antrean' : 'kategori';
 if (table) {
     new DataTable(table, {
         perPage: 10,
@@ -21,8 +22,8 @@ if (table) {
             info: `Menampilkan {start}–{end} dari {rows} ${entity}`,
         },
         columns: [
-            ...(officeTable ? [] : [{ select: serviceTable ? [2] : guideTable ? [2, 3] : announcementTable ? [1] : [1, 3], type: 'number' }]),
-            { select: officeTable ? 3 : serviceTable || guideTable ? 5 : 4, sortable: false, searchable: false },
+            ...(officeTable || queueTable ? [] : [{ select: serviceTable ? [2] : guideTable ? [2, 3] : announcementTable ? [1] : [1, 3], type: 'number' }]),
+            { select: officeTable || queueTable ? 3 : serviceTable || guideTable ? 5 : 4, sortable: false, searchable: false },
         ],
     });
     const search = document.querySelector('.category-table .datatable-input');
@@ -34,6 +35,12 @@ if (table) {
             input.form.requestSubmit();
         }
     });
+}
+
+const queueDialog = document.querySelector('#queue-dialog');
+if (queueDialog?.hasAttribute('data-auto-open')) {
+    queueDialog.removeAttribute('open');
+    queueDialog.showModal();
 }
 
 const officeDialog = document.querySelector('#office-dialog');
