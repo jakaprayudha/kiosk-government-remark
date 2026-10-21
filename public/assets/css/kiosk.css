@@ -69,6 +69,27 @@ h1, h2, h3, p { margin-top: 0; }
 .submission-choice h2 { font-size: 1.25rem; }
 .submission-choice strong { color: var(--blue); }
 .pickup-result { margin-block: 20px; padding: 20px; border: 1px solid var(--line); border-radius: 10px; background: #f4f7fc; }
+.status-entry-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-block: 22px; }
+.qr-scanner-preview { position: relative; isolation: isolate; width: 100%; max-width: 560px; aspect-ratio: 1; margin-block: 18px; overflow: hidden; border-radius: 14px; background: #071525; }
+.qr-scanner-preview #qr-camera { display: block; width: 100%; height: 100%; max-height: none; margin: 0; border-radius: 0; object-fit: contain; }
+.qr-scanner-overlay { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; color: #fff; }
+.qr-scanner-label, .qr-scanner-overlay p { position: absolute; z-index: 1; margin: 0; padding: 8px 12px; border-radius: 8px; background: #071525e8; color: #fff; font-size: clamp(.8rem, 2.5vw, 1rem); text-align: center; }
+.qr-scanner-label { top: 12px; }
+.qr-scanner-overlay p { bottom: 12px; max-width: calc(100% - 24px); }
+.qr-scanner-frame { position: relative; width: 60%; max-width: 280px; aspect-ratio: 1; border: 3px solid #6fffc4; border-radius: 12px; box-shadow: 0 0 0 100vmax #07152580; overflow: hidden; }
+.qr-scanner-line { position: absolute; left: 4%; right: 4%; top: 6%; height: 3px; border-radius: 3px; background: #6fffc4; box-shadow: 0 0 12px #6fffc4; animation: qr-scanner-sweep 2.4s ease-in-out infinite alternate; }
+@keyframes qr-scanner-sweep { from { top: 6%; } to { top: 92%; } }
+@media (prefers-reduced-motion: reduce) {
+    .qr-scanner-line { animation: none; top: 50%; }
+}
+.status-timeline { list-style: none; padding: 0; margin: 24px 0; }
+.status-timeline li { position: relative; display: flex; gap: 18px; padding: 0 0 26px; }
+.status-timeline li:not(:last-child)::before { content: ""; position: absolute; left: 9px; top: 20px; bottom: 0; width: 2px; background: #cbd8e8; }
+.status-dot { z-index: 1; width: 20px; height: 20px; flex-shrink: 0; margin-top: 3px; border-radius: 50%; border: 4px solid #e3eaf3; background: #647c9b; }
+.status-timeline [aria-current="step"] .status-dot { border-color: #bed3f0; background: var(--blue); }
+.status-timeline p { margin: 8px 0; }
+.status-timeline time { color: #526680; font-size: .85rem; }
+.status-timeline .requirement-badge { margin-left: 10px; }
 .office-profile { display: grid; grid-template-columns: minmax(0, 3fr) minmax(220px, 1fr); gap: 20px; margin-block: 24px; }
 .office-profile .detail-panel { width: 100%; min-width: 0; margin: 0; padding: 28px; }
 .office-totals { display: grid; gap: 18px; }

@@ -36,7 +36,7 @@ function public_submission_letter(PDO $pdo, string $code): ?array
     return $query->fetch() ?: null;
 }
 
-function stream_submission_letter(array $letter): never
+function stream_submission_letter(array $letter, bool $download = false): never
 {
     $name = $letter['stored_name'];
     if (!preg_match('/^[a-f0-9]{48}\.pdf$/', $name) || !is_file(submission_upload_dir() . '/' . $name)) {
@@ -45,7 +45,7 @@ function stream_submission_letter(array $letter): never
         exit('Surat tidak tersedia. Hubungi petugas.');
     }
     header('Content-Type: application/pdf');
-    header('Content-Disposition: inline; filename="surat-layanan.pdf"');
+    header('Content-Disposition: ' . ($download ? 'attachment' : 'inline') . '; filename="surat-layanan.pdf"');
     header('Cache-Control: no-store');
     header('X-Content-Type-Options: nosniff');
     header("Content-Security-Policy: sandbox; default-src 'none'");

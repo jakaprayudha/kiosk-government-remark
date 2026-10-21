@@ -128,4 +128,30 @@ ob_start();
 require dirname(__DIR__) . '/app/views/public-submissions.php';
 $html = ob_get_clean();
 check_submission(!str_contains($html, 'name="nik"') && !str_contains($html, 'name="birth_date"') && !str_contains($html, 'value="face"'), 'Identitas/wajah yang tidak diminta tidak boleh ditampilkan.');
+$selected = 'status';
+$ticketStatus = null;
+$finalLetter = null;
+$ticketEvents = [];
+ob_start();
+require dirname(__DIR__) . '/app/views/public-submissions.php';
+$html = ob_get_clean();
+foreach (['Scan QR dengan kamera', 'Ketik nomor pengajuan', 'Nomor pengajuan / kode tiket', 'PIN enam digit'] as $label) check_submission(str_contains($html, $label), 'Opsi cek status hilang: ' . $label);
+foreach (['id="qr-scanner-preview" class="qr-scanner-preview" hidden', 'Kamera aktif · Scan QR code', 'Tempatkan QR tiket di dalam kotak', 'class="qr-scanner-line"'] as $text) check_submission(str_contains($html, $text), 'Panduan kamera QR hilang: ' . $text);
+check_submission(!str_contains($html, 'download=1'), 'File tidak boleh tersedia sebelum cek PIN.');
+$ticketStatus = ['service_name' => '<script>layanan</script>', 'public_code' => $code, 'is_demo' => 1, 'status' => 'completed', 'public_note' => '<img src=x>', 'created_at' => '2026-10-20 03:00:00', 'updated_at' => '2026-10-20 04:00:00'];
+$ticketEvents = [
+    ['new_status' => 'new', 'public_message' => 'Tersimpan', 'created_at' => '2026-10-20 03:00:00'],
+    ['new_status' => 'completed', 'public_message' => '<script>catatan</script>', 'created_at' => '2026-10-20 04:00:00'],
+];
+$finalLetter = ['pickup_number' => 'L1-000001', 'size_bytes' => 2048];
+ob_start();
+require dirname(__DIR__) . '/app/views/public-submissions.php';
+$html = ob_get_clean();
+foreach (['download=1', 'Unduh PDF surat', 'Buka / cetak PDF surat', 'Riwayat progres pengajuan', 'aria-current="step"', '11:00:00 WIB', '2,0 KB', 'L1-000001'] as $text) check_submission(str_contains($html, $text), 'Hasil status tidak lengkap: ' . $text);
+check_submission(!str_contains($html, '<script>layanan') && !str_contains($html, '<script>catatan') && !str_contains($html, '<img src=x>'), 'Hasil status harus di-escape.');
+$finalLetter = null;
+ob_start();
+require dirname(__DIR__) . '/app/views/public-submissions.php';
+$html = ob_get_clean();
+check_submission(!str_contains($html, 'download=1') && str_contains($html, 'Surat final dan nomor antrean belum tersedia'), 'Tanpa surat final harus menampilkan keadaan belum tersedia.');
 fwrite(STDOUT, "PASS: pilihan pengajuan terpisah, identitas bersyarat, foto wajah wajib, persetujuan, idempotensi, hash PIN, transisi, PDF final, antrean unik, konflik, rollback, retensi, dan kontrol lampiran.\n");

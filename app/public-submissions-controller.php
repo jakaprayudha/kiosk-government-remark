@@ -78,6 +78,7 @@ try {
         $receipt = $query->fetch();
         if (!$receipt) throw new DomainException('Tiket tidak ditemukan atau telah melewati masa retensi.');
     } elseif ($selected === 'status' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        unset($_SESSION['letter_access']);
         if (!public_csrf_valid()) {
             http_response_code(400);
             throw new DomainException('Sesi formulir berakhir. Muat ulang halaman.');

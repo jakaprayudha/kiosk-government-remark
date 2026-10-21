@@ -33,6 +33,7 @@ const photos = new Map();
 const video = document.querySelector('#document-camera');
 const cameraMessage = document.querySelector('#camera-message');
 const scannerVideo = document.querySelector('#qr-camera');
+const scannerPreview = document.querySelector('#qr-scanner-preview');
 const scannerMessage = document.querySelector('#scanner-message');
 const form = document.querySelector('#submission-form');
 let cameraGeneration = 0;
@@ -55,6 +56,7 @@ function stopScanner() {
     scannerGeneration += 1;
     clearTimeout(scannerTimer);
     scannerTimer = null;
+    if (scannerPreview) scannerPreview.hidden = true;
     if (scannerVideo) {
         const stream = scannerVideo.srcObject;
         if (stream instanceof MediaStream) stream.getTracks().forEach((track) => track.stop());
@@ -249,7 +251,8 @@ document.querySelector('#start-scanner')?.addEventListener('click', async () => 
         scannerVideo.hidden = false;
         await scannerVideo.play();
         if (generation !== scannerGeneration) return;
-        scannerMessage.textContent = 'Arahkan QR tiket ke kamera.';
+        scannerPreview.hidden = false;
+        scannerMessage.textContent = 'Kamera aktif. Tempatkan seluruh QR tiket di dalam kotak dan tahan hingga terbaca.';
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d', { willReadFrequently: true });
         const scan = () => {
@@ -290,6 +293,11 @@ document.querySelector('#start-scanner')?.addEventListener('click', async () => 
     }
 });
 document.querySelector('#stop-scanner')?.addEventListener('click', stopScanner);
+document.querySelector('#manual-ticket')?.addEventListener('click', () => {
+    stopScanner();
+    document.querySelector('#ticket-code').focus();
+    scannerMessage.textContent = 'Ketik nomor pengajuan pada bukti, lalu masukkan PIN enam digit.';
+});
 document.querySelector('#ticket-code')?.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
         event.preventDefault();

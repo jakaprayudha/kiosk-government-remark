@@ -15,7 +15,7 @@ try {
         http_response_code(404);
         exit('Surat belum tersedia atau telah melewati retensi.');
     }
-    stream_submission_letter($letter);
+    stream_submission_letter($letter, ($_GET['download'] ?? '') === '1');
 } catch (RuntimeException $error) {
     error_log('Akses surat gagal: ' . get_class($error));
     http_response_code(503);
