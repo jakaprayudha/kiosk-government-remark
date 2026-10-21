@@ -116,6 +116,12 @@ h1, h2, h3, p { margin-top: 0; }
 .category-dialog-body .admin-form { margin-bottom: 20px; }
 .category-dialog-footer { display: flex; flex-shrink: 0; align-items: center; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid var(--line); background: #fafbfd; }
 .category-dialog-footer button { border: 1px solid var(--blue); }
+.category-dialog-body .category-switch { white-space: normal; }
+.category-dialog-body h3 { margin: 12px 0 0; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.service-requirement { display: grid; min-width: 0; gap: 12px; margin: 0 0 14px; padding: 14px; border: 1px solid var(--line); border-radius: 6px; }
+.service-requirement label { display: block; }
+.service-requirement legend { font-weight: 650; }
+.service-requirement .button.button-danger-outline { border: 1px solid #d95362; }
 .category-dialog [data-category-close] { border: 1px solid var(--line); background: #f5f7fb; }
 html:has(.category-dialog:modal) { overflow: hidden; }
 table { width: 100%; border-collapse: collapse; text-align: left; }

@@ -6,7 +6,7 @@ function admin_navigation(): array
     return [
         'dashboard' => ['label' => 'Dashboard', 'group' => 'UTAMA', 'icon' => 'grid', 'description' => 'Ringkasan panel pengelola KIOSK.'],
         'categories' => ['label' => 'Kategori layanan', 'group' => 'KONTEN KIOSK', 'icon' => 'folder', 'description' => 'Kelompokkan layanan, atur ikon, urutan, dan status kategori.'],
-        'services' => ['label' => 'Layanan administrasi', 'group' => 'KONTEN KIOSK', 'icon' => 'document', 'description' => 'Atur penerimaan pengajuan, kebutuhan data, kamera, dan retensi pada katalog transaksi.'],
+        'services' => ['label' => 'Layanan administrasi', 'group' => 'KONTEN KIOSK', 'icon' => 'document', 'description' => 'Kelola master layanan, persyaratan, status publik dan pengaturan transaksi yang fleksibel.'],
         'document-guides' => ['label' => 'Persyaratan & biaya', 'group' => 'KONTEN KIOSK', 'icon' => 'document', 'description' => 'Kelola tabel referensi pengurusan dokumen, syarat, biaya, dan dasar hukum wilayah. Terpisah dari layanan transaksi.'],
         'announcements' => ['label' => 'Pengumuman', 'group' => 'KONTEN KIOSK', 'icon' => 'bell', 'description' => 'Kelola pengumuman, prioritas, dan periode tayang pada KIOSK.'],
         'office' => ['label' => 'Profil kecamatan', 'group' => 'KONTEN KIOSK', 'icon' => 'building', 'description' => 'Perbarui profil kantor, alamat, jam layanan, kontak, dan kanal resmi.'],

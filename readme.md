@@ -181,7 +181,7 @@ Halaman reset password meminta username dan kode pemulihan. Formulir admin mendu
 
 Setelah login, admin membuka `public/admin/dashboard.php`. Panel ini dirancang untuk laptop/desktop dengan sidebar, tabel aktivitas, serta navigasi keyboard dan mouse; tidak memerlukan touchscreen. Di layar kecil, tombol menu membuka sidebar.
 
-Dashboard membaca jumlah admin aktif, pengajuan baru, total pengajuan dalam retensi (termasuk DEMO), aktivitas hari ini (WIB), dan tujuh aktivitas audit terakhir langsung dari SQLite. Menu **Pengajuan layanan** aktif untuk pemeriksaan dan tindak lanjut; **Kategori layanan** menyediakan tambah/ubah/hapus kategori yang sinkron dengan katalog publik; **Layanan administrasi** menyediakan pengaturan transaksi per layanan; **Persyaratan & biaya** menyediakan tambah/edit/publikasi master referensi dokumen. **Pengaduan & aspirasi** menyediakan tindak lanjut laporan, dan **Antrean & jadwal** mengelola simulasi instansi/layanan/jadwal berkuota dan panggilan. CRUD konten layanan transaksi, akun, laporan, audit lengkap, dan pengaturan umum masih menyusul.
+Dashboard membaca jumlah admin aktif, pengajuan baru, total pengajuan dalam retensi (termasuk DEMO), aktivitas hari ini (WIB), dan tujuh aktivitas audit terakhir langsung dari SQLite. Menu **Pengajuan layanan** aktif untuk pemeriksaan dan tindak lanjut; **Kategori layanan** menyediakan tambah/ubah/hapus kategori yang sinkron dengan katalog publik; **Layanan administrasi** menyediakan CRUD konten/persyaratan serta pengaturan transaksi per layanan; **Persyaratan & biaya** menyediakan tambah/edit/publikasi master referensi dokumen. **Pengaduan & aspirasi** menyediakan tindak lanjut laporan, dan **Antrean & jadwal** mengelola simulasi instansi/layanan/jadwal berkuota dan panggilan. Akun, laporan, audit lengkap, dan pengaturan umum masih menyusul.
 
 ### UI KIOSK publik
 
@@ -233,7 +233,17 @@ Jalankan `php bin/migrate.php` untuk menerapkan migrasi `002_service_catalog`. M
 
 Layanan baru secara default berstatus draf (`is_published = 0`). Katalog dan detail hanya menampilkan layanan berstatus publikasi dalam kategori aktif dan rentang tanggal berlaku berdasarkan WIB. `valid_from` dan `valid_until` berformat `YYYY-MM-DD`, batas tanggal termasuk, atau `NULL` bila tanpa batas. Slug kategori dipakai pada filter `kategori`; ID layanan dipakai pada parameter `layanan` untuk detail.
 
-Database awal tidak diisi layanan contoh agar persyaratan/biaya rekaan tidak dianggap resmi. Kategori dapat dikelola melalui admin; konten layanan/persyaratan resmi masih diisi pengelola teknis melalui SQLite dengan foreign key aktif. Halaman langsung membaca perubahan saat dimuat ulang. Pengaturan transaksi tersedia di admin; CRUD konten layanan/persyaratan tetap menyusul. Biaya atau persyaratan kosong ditandai belum diinformasikan, bukan dianggap gratis atau tanpa dokumen. Tautan kanal resmi hanya menerima URL HTTP/HTTPS tanpa kredensial dan dibuka di tab baru.
+Database awal tidak diisi layanan contoh agar persyaratan/biaya rekaan tidak dianggap resmi. Kategori, konten layanan, persyaratan katalog dan pengaturan transaksi dapat dikelola melalui admin. Halaman publik langsung membaca perubahan saat dimuat ulang. Biaya atau persyaratan kosong ditandai belum diinformasikan, bukan dianggap gratis atau tanpa dokumen. Tautan kanal resmi hanya menerima URL HTTP/HTTPS tanpa kredensial dan dibuka di tab baru.
+
+#### CRUD master layanan dan transaksi
+
+Jalankan `php bin/migrate.php` untuk migrasi `012_service_versions.sql`. Admin `dashboard.php?module=services` memakai tabel dengan search rata kanan, sort dan pagination; tambah/ubah melalui modal dengan header/footer tetap serta isi scroll. Tambah baru default OFF, informasi saja, retensi 30 hari. Isi kategori, nama/slug unik, ringkasan, deskripsi, sasaran, biaya, estimasi, unit, lokasi, URL resmi, urutan dan tanggal berlaku opsional (inklusif, WIB). ON pada tabel langsung menyimpan; layanan hanya tampil jika kategori aktif serta tanggal berlaku sesuai.
+
+Pengaturan transaksi tetap independen per layanan: terima pengajuan, wajib nama/kontak/NIK/tanggal lahir/foto wajah, kamera dokumen opsional, status DEMO dan retensi 1–365 hari. Foto wajah tidak memakai pengenalan otomatis. Retensi hanya untuk pengajuan baru; penghapusan harian memakai CLI purge yang sudah ada. Alur persetujuan PDF final, nomor pengambilan, tiket dan riwayat tidak berubah.
+
+Persyaratan katalog/pengajuan dapat ditambah/ubah/hapus per baris (maksimal 50; nama 300 byte, penjelasan 1500 byte, status wajib/opsional, urutan mengikuti baris). ID persyaratan yang diedit dipertahankan; menghapus persyaratan tidak menghapus lampiran lama yang memiliki snapshot nama dokumen. Master referensi **Persyaratan & biaya** tetap terpisah, tidak otomatis ditimpa.
+
+Simpan konten/transaksi/persyaratan bersifat atomik dengan CSRF, pemeriksaan versi, validasi server dan audit. Toggle status hanya mengubah publikasi, tidak mengubah konfigurasi transaksi. Hapus langsung outline merah hanya tersedia bila tidak ada pengajuan atau riwayat sequence nomor pengambilan; FK RESTRICT tetap melindungi. Gunakan OFF untuk layanan yang pernah dipakai. Nama/DEMO pada pengajuan lama merupakan snapshot dan tidak ditimpa perubahan master. Uji: `php tests/service-master.php`, `php tests/service-catalog.php`, dan `php tests/submissions.php`.
 
 #### CRUD kategori layanan
 
