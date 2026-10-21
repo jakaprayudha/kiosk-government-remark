@@ -97,4 +97,38 @@ ob_start();
 require dirname(__DIR__) . '/app/views/public-complaints.php';
 $html = ob_get_clean();
 check_complaint(str_contains($html, 'Cetak bukti laporan') && str_contains($html, '123456') && !str_contains($html, 'id="complaint-form"'), 'Bukti laporan salah.');
-echo "PASS: migrasi, anonim, aspirasi, validasi batas, persetujuan, idempotensi, hash PIN, privasi lookup, transisi, tanggapan, konflik versi, rollback, retensi/cascade, UI dan escaping.\n";
+$seed = file_get_contents(dirname(__DIR__) . '/database/seeds/demo-complaints.sql');
+if ($seed === false) throw new RuntimeException('Seed pengaduan tidak tersedia.');
+$pdo->exec($seed);
+$pdo->exec($seed);
+$demoRows = $pdo->query("SELECT * FROM complaints WHERE public_code IN ('AD-DE000000000000000001','AD-DE000000000000000002','AD-DE000000000000000003') ORDER BY public_code")->fetchAll();
+check_complaint(count($demoRows) === 3, 'Seed harus idempoten menghasilkan 3 laporan.');
+foreach ($demoRows as $demo) {
+    check_complaint(password_verify('123456', $demo['pin_hash']) && strlen($demo['request_key']) === 48, 'PIN/key dummy harus valid.');
+    check_complaint(count(lookup_complaint($pdo, $demo['public_code'], '123456')['events']) === 1, 'Seed event harus idempoten.');
+}
+$demoId = (int) $demoRows[0]['id'];
+update_complaint($pdo, $demoId, 1, 'new', 'reviewing', 'DEMO - ditinjau', 'Catatan uji', 1);
+$pdo->exec($seed);
+check_complaint(lookup_complaint($pdo, $demoRows[0]['public_code'], '123456')['status'] === 'reviewing', 'Seed ulang tidak boleh menimpa proses admin.');
+check_complaint(count(lookup_complaint($pdo, $demoRows[0]['public_code'], '123456')['events']) === 2, 'Riwayat tidak boleh ditimpa/ditambah seed ulang.');
+function escape(string $value): string { return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
+$complaintAdminError = '';
+$complaintRecord = null;
+$complaintId = 0;
+$complaintTotal = 3;
+$complaintPage = 1;
+$complaintFilter = '';
+$complaintRecords = $demoRows;
+$complaintRecords[0]['name'] = '<script>nama</script>';
+$complaintRecords[0]['contact'] = '<img src=x>';
+$complaintRecords[0]['location'] = '<script>lokasi</script>';
+ob_start();
+require dirname(__DIR__) . '/app/views/admin-complaints.php';
+$html = ob_get_clean();
+foreach (['Pengadu / kontak', 'Anonim (nama tidak diisi)', 'Kontak tidak diisi', 'Lokasi:', 'data-auto-submit', '<noscript><button', 'submission-status-new', '&lt;script&gt;nama&lt;/script&gt;'] as $text) {
+    check_complaint(str_contains($html, $text), 'Tabel admin tidak lengkap: ' . $text);
+}
+check_complaint(substr_count($html, 'class="button button-primary"') === 3, 'Periksa harus berupa tombol biru.');
+check_complaint(!str_contains($html, '<script>nama') && !str_contains($html, '<img src=x>') && !str_contains($html, '<script>lokasi'), 'Identitas/lokasi admin harus di-escape.');
+echo "PASS: migrasi, anonim, aspirasi, validasi batas, persetujuan, idempotensi, hash PIN, privasi lookup, transisi, tanggapan, konflik versi, rollback, retensi/cascade, seed DEMO idempoten, tabel pengadu, filter, badge, UI dan escaping.\n";

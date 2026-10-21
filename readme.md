@@ -376,6 +376,12 @@ Penetapan menyimpan token acak pada cookie `kiosk_device` berumur satu tahun, Ht
 
 Semua tabel mengikuti style master data: search/sort/pagination lokal, modal tambah/ubah dengan header/footer tetap, toggle ON/OFF, dan hapus outline merah tanpa konfirmasi. Data baru berupa profil/desa/sarana default OFF dan DEMO sampai diperiksa. Muat ulang publik untuk membaca perubahan. Uji: `php tests/office-management.php` dan `php tests/office.php`.
 
+### Data latihan dan tabel admin pengaduan
+
+Jalankan `php bin/seed-demo-complaints.php` untuk memasukkan SQL `database/seeds/demo-complaints.sql` ke SQLite. Tersedia tiga laporan bertanda **DEMO**: pengaduan lampu area tunggu dari Budi Contoh (fiktif), pengaduan kebersihan anonim, dan aspirasi papan petunjuk dari Siti Contoh (fiktif). Kode `AD-DE000000000000000001` sampai `AD-DE000000000000000003`, PIN contoh **123456** (hanya hash disimpan). Jangan gunakan PIN/data contoh untuk laporan nyata. Seed ulang tidak menggandakan laporan/riwayat, tidak mengubah status, tanggapan atau masa retensi; setelah retensi jalankan pembersihan sesuai prosedur.
+
+Pada `admin/dashboard.php?module=complaints`, nama pengadu dan kontak tampil langsung di kolom tersendiri, di samping judul, kategori, lokasi, kode, jenis dan waktu UTC. Tanpa nama ditulis **Anonim (nama tidak diisi)**; identitas/kontak tidak diverifikasi. Identitas ini hanya untuk admin, tidak ditambahkan ke hasil cek publik. Filter status otomatis memuat ulang tanpa tombol Terapkan (fallback tersedia tanpa JavaScript). Tombol Periksa biru dan badge warna pada daftar/detail/riwayat mengikuti style pengajuan. Tindak lanjut tetap memerlukan tanggapan publik, pemeriksaan versi, audit, dan transisi status yang sah. Uji: `php tests/complaints.php`.
+
 ## 10. Tahapan implementasi
 
 1. **Fondasi:** skema/migrasi SQLite, login admin, kontrol peran, audit log, dan pengelolaan profil kantor.

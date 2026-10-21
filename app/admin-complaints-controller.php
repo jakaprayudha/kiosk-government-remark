@@ -52,7 +52,7 @@ try {
         $query->execute($params);
         $complaintTotal = (int) $query->fetchColumn();
         $complaintPage = min($complaintPage, max(1, (int) ceil($complaintTotal / 20)));
-        $query = db()->prepare('SELECT id,public_code,kind,title,status,created_at FROM complaints' . $where . ' ORDER BY id DESC LIMIT 20 OFFSET ' . (($complaintPage - 1) * 20));
+        $query = db()->prepare('SELECT id,public_code,kind,category,title,name,contact,location,status,created_at FROM complaints' . $where . ' ORDER BY id DESC LIMIT 20 OFFSET ' . (($complaintPage - 1) * 20));
         $query->execute($params);
         $complaintRecords = $query->fetchAll();
     }
