@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once dirname(__DIR__) . '/app/public-session.php';
+require_once dirname(__DIR__) . '/app/public-identity.php';
 require_once dirname(__DIR__) . '/app/database.php';
 require_once dirname(__DIR__) . '/app/office-activity.php';
 $kioskActivityError = '';
@@ -186,7 +187,7 @@ function kiosk_icon(string $name): string
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f4f7fc">
     <meta name="public-csrf" content="<?= kiosk_escape($_SESSION['csrf']) ?>">
-    <title><?= $page ? kiosk_escape($page['title']) . ' — ' : '' ?>KIOSK Publik Kecamatan</title>
+    <title><?= $page ? kiosk_escape($page['title']) . ' — ' : '' ?><?= kiosk_escape($publicIdentity['kiosk_title'] . ' ' . $publicOfficeName) ?></title>
     <?php if ($selected === 'kantor' && $office !== null): ?>
         <link rel="stylesheet" href="assets/css/leaflet.css">
     <?php endif; ?>
@@ -201,15 +202,16 @@ function kiosk_icon(string $name): string
 <body>
     <a class="skip-link" href="#konten-kiosk">Lewati ke konten utama</a>
     <header class="kiosk-header">
-        <a class="brand" href="kiosk.php" data-menu-voice="Beranda KIOSK" aria-label="Beranda KIOSK"><span class="brand-icon"><?= kiosk_icon('building') ?></span><span><strong>KIOSK<span>KECAMATAN</span></strong></span></a>
-        <div class="public-label"><span></span> LAYANAN INFORMASI PUBLIK</div>
+        <a class="brand" href="kiosk.php" data-menu-voice="Beranda KIOSK" aria-label="Beranda KIOSK"><span class="brand-icon"><?php if ($publicIdentity['logo_data'] !== ''): ?><img src="<?= kiosk_escape($publicIdentity['logo_data']) ?>" alt="Logo daerah"><?php else: ?><?= kiosk_icon('building') ?><?php endif; ?></span><span><strong><?= kiosk_escape($publicIdentity['kiosk_title']) ?><span><?= kiosk_escape($publicOfficeName !== '' ? $publicOfficeName : 'Perangkat belum ditetapkan') ?></span></strong></span></a>
+        <div class="public-label"><span></span> <?= kiosk_escape($publicIdentity['region_name'] !== '' ? $publicIdentity['region_name'] : 'LAYANAN INFORMASI PUBLIK') ?></div>
         <div class="clock"><time id="kiosk-clock" datetime="<?= kiosk_escape($now->format(DATE_ATOM)) ?>"><?= $now->format('H:i:s') ?> WIB</time><span id="kiosk-date"><?= $now->format('d/m/Y') ?></span></div>
     </header>
     <main id="konten-kiosk" class="kiosk-container">
         <?php if ($kioskActivityError !== ''): ?><p class="transaction-error" role="alert"><?= kiosk_escape($kioskActivityError) ?></p><?php endif; ?>
+        <?php if ($identityBindingError !== ''): ?><p class="transaction-error" role="alert"><?= kiosk_escape($identityBindingError) ?></p><?php endif; ?>
         <?php if ($page === null): ?>
             <section class="welcome">
-                <div><span class="eyebrow">SELAMAT DATANG DI KIOSK KECAMATAN</span><h1>Ada yang bisa kami bantu?</h1><p>Sentuh menu di bawah untuk menemukan informasi yang Anda butuhkan.</p><span class="welcome-note">Mudah digunakan <i></i> Tanpa perlu akun <i></i> Bahasa Indonesia</span></div>
+                <div><span class="eyebrow">SELAMAT DATANG DI <?= kiosk_escape($publicOfficeName !== '' ? $publicOfficeName : $publicIdentity['kiosk_title']) ?></span><h1>Ada yang bisa kami bantu?</h1><p><?= kiosk_escape($publicIdentity['tagline']) ?></p><span class="welcome-note">Mudah digunakan <i></i> Tanpa perlu akun <i></i> Bahasa Indonesia</span></div>
                 <div class="welcome-art" aria-hidden="true"><?= kiosk_icon('building') ?><span>INFORMASI LEBIH DEKAT</span></div>
             </section>
             <section class="menu-section" aria-labelledby="menu-title">
@@ -258,7 +260,7 @@ function kiosk_icon(string $name): string
         <button class="footer-button" id="text-size-toggle" type="button" aria-pressed="false"><span aria-hidden="true">A+</span> Teks besar</button>
         <a class="footer-button" href="kiosk.php?menu=bantuan" data-menu-voice="Bantuan penggunaan"><?= kiosk_icon('help') ?> Bantuan</a>
         <form method="post" action="end-session.php" class="end-session-form"><input type="hidden" name="csrf" value="<?= kiosk_escape($_SESSION['csrf']) ?>"><button class="footer-button" type="submit">Selesai & bersihkan sesi</button></form>
-        <span class="footer-note">Jaga kerahasiaan data pribadi Anda.</span>
+        <span class="footer-note"><?= kiosk_escape($publicIdentity['footer_text']) ?></span>
     </footer>
     <p class="speech-status" id="speech-status" role="status" aria-live="polite"></p>
     <dialog id="idle-dialog" aria-labelledby="idle-title">

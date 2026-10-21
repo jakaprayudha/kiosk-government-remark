@@ -6,7 +6,7 @@ require_once __DIR__ . '/reports.php';
 function audit_action_labels(): array
 {
     return [
-        'login' => 'Login', 'logout' => 'Logout', 'password_reset' => 'Reset password',
+        'login' => 'Login', 'logout' => 'Logout', 'password_reset' => 'Reset password', 'kiosk_settings' => 'Pengaturan KIOSK',
         'service_settings' => 'Pengaturan layanan', 'submission_status' => 'Status pengajuan',
         'document_guide_saved' => 'Persyaratan & biaya', 'document_guide_status' => 'Status panduan', 'document_guide_deleted' => 'Panduan dihapus',
         'complaint_status' => 'Tindak lanjut pengaduan', 'queue_update' => 'Antrean DEMO',

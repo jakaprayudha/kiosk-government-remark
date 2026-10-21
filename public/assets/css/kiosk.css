@@ -11,6 +11,10 @@ h1, h2, h3, p { margin-top: 0; }
 .brand { display: flex; min-height: 54px; align-items: center; gap: 12px; }
 .brand-icon { display: grid; width: 46px; height: 46px; place-items: center; color: var(--blue); border-radius: 13px; background: #eaf1fc; }
 .brand-icon svg { width: 30px; height: 30px; }
+.brand-icon img { width: 42px; height: 42px; object-fit: contain; }
+.brand { min-width: 0; overflow-wrap: anywhere; }
+.brand > span:last-child { min-width: 0; }
+.public-label { overflow-wrap: anywhere; }
 .brand strong { display: block; font-size: 1.25rem; letter-spacing: .07em; line-height: 1.2; }
 .brand strong > span { display: block; margin-top: 6px; color: #91a0b4; font-size: .6rem; letter-spacing: .18em; }
 .public-label { display: flex; align-items: center; gap: 9px; color: #8595a9; font-size: .65rem; font-weight: 650; letter-spacing: .12em; }

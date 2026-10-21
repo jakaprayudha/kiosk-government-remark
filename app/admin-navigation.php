@@ -16,7 +16,7 @@ function admin_navigation(): array
         'users' => ['label' => 'Akun & petugas', 'group' => 'ADMINISTRASI', 'icon' => 'users', 'description' => 'Admin pusat mengelola akun admin setiap kecamatan, password dan status akses wilayah.'],
         'reports' => ['label' => 'Laporan', 'group' => 'ADMINISTRASI', 'icon' => 'chart', 'description' => 'Ringkasan pengajuan, pengaduan dan pemesanan antrean menurut periode WIB, status terkini dan layanan.'],
         'audit' => ['label' => 'Audit aktivitas', 'group' => 'ADMINISTRASI', 'icon' => 'clock', 'description' => 'Telusuri riwayat aktivitas pengelola dengan filter periode, aktivitas, dan pencarian.'],
-        'settings' => ['label' => 'Pengaturan KIOSK', 'group' => 'ADMINISTRASI', 'icon' => 'settings', 'description' => 'Atur preferensi KIOSK, timeout sesi publik, dan kebijakan retensi pada tahap berikutnya.'],
+        'settings' => ['label' => 'Pengaturan KIOSK', 'group' => 'ADMINISTRASI', 'icon' => 'settings', 'description' => 'Kelola logo, nama daerah, judul, tagline, dan pesan footer tampilan publik.'],
     ];
 }
 

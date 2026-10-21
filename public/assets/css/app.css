@@ -28,6 +28,8 @@ svg { display: block; }
 .brand { display: inline-flex; align-items: center; gap: 10px; }
 .brand-mark { display: grid; width: 40px; height: 40px; place-items: center; color: var(--blue); background: var(--blue-soft); border-radius: 12px; }
 .brand-mark svg { width: 29px; height: 29px; }
+.brand-mark img { width: 35px; height: 35px; object-fit: contain; }
+.brand-copy { min-width: 0; overflow-wrap: anywhere; }
 .brand-copy { display: grid; line-height: 1.1; }
 .brand-copy strong { font-family: var(--font-heading); font-size: 16px; font-weight: 800; letter-spacing: .08em; }
 .brand-copy > span { margin-top: 4px; color: #7e8999; font-size: 9px; font-weight: 700; letter-spacing: .19em; }

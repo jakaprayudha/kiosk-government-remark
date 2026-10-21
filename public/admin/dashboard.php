@@ -28,6 +28,7 @@ if ($module === 'document-guides') require dirname(__DIR__, 2) . '/app/admin-doc
 if ($module === 'announcements') require dirname(__DIR__, 2) . '/app/admin-announcements.php';
 if ($module === 'reports') require dirname(__DIR__, 2) . '/app/admin-reports.php';
 if ($module === 'audit') require dirname(__DIR__, 2) . '/app/admin-audit.php';
+if ($module === 'settings') require dirname(__DIR__, 2) . '/app/admin-settings.php';
 if (in_array($module, ['office', 'users'], true)) require dirname(__DIR__, 2) . '/app/admin-office.php';
 $stats = null;
 $events = [];
@@ -94,7 +95,7 @@ $actionLabels = audit_action_labels();
                    <?= $module === $key ? 'aria-current="page"' : '' ?>>
                     <?= admin_icon($item['icon']) ?>
                     <span><?= escape($item['label']) ?></span>
-                    <?php if (!in_array($key, ['dashboard', 'categories', 'submissions', 'complaints', 'queues', 'services', 'document-guides', 'announcements', 'office', 'users', 'reports', 'audit'], true)): ?><span class="planned-dot" title="Modul belum tersedia"><span class="sr-only">Belum tersedia</span></span><?php endif; ?>
+                    <?php if (!in_array($key, ['dashboard', 'categories', 'submissions', 'complaints', 'queues', 'services', 'document-guides', 'announcements', 'office', 'users', 'reports', 'audit', 'settings'], true)): ?><span class="planned-dot" title="Modul belum tersedia"><span class="sr-only">Belum tersedia</span></span><?php endif; ?>
                 </a>
             <?php endforeach; ?>
         </nav>
@@ -203,6 +204,8 @@ $actionLabels = audit_action_labels();
                 <?php require dirname(__DIR__, 2) . '/app/views/admin-reports.php'; ?>
             <?php elseif ($module === 'audit'): ?>
                 <?php require dirname(__DIR__, 2) . '/app/views/admin-audit.php'; ?>
+            <?php elseif ($module === 'settings'): ?>
+                <?php require dirname(__DIR__, 2) . '/app/views/admin-settings.php'; ?>
             <?php else: ?>
                 <section class="panel placeholder-panel">
                     <span class="placeholder-icon"><?= admin_icon($page['icon']) ?></span>

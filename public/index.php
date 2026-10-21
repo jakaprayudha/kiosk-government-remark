@@ -1,3 +1,8 @@
+<?php
+declare(strict_types=1);
+require_once dirname(__DIR__) . '/app/public-identity.php';
+header('Cache-Control: no-store');
+?>
 <!doctype html>
 <html lang="id">
 <head>
@@ -5,8 +10,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f6f8fc">
     <meta name="description" content="Temukan informasi layanan kecamatan, persyaratan, dan kanal pengurusan resmi melalui KIOSK Kecamatan.">
-    <title>KIOSK Kecamatan — Layanan dalam Genggaman</title>
-    <link rel="stylesheet" href="assets/css/app.css">
+    <title><?= identity_escape($publicIdentity['kiosk_title']) ?> — <?= identity_escape($publicIdentity['region_name'] !== '' ? $publicIdentity['region_name'] : 'Layanan Kecamatan') ?></title>
+    <link rel="stylesheet" href="assets/css/app.css?v=<?= filemtime(__DIR__ . '/assets/css/app.css') ?>">
     <script src="assets/js/app.js" defer></script>
 </head>
 <body>
@@ -16,15 +21,17 @@
         <div class="container header-inner">
             <a class="brand" href="#beranda" aria-label="KIOSK Kecamatan, beranda">
                 <span class="brand-mark" aria-hidden="true">
+                    <?php if ($publicIdentity['logo_data'] !== ''): ?><img src="<?= identity_escape($publicIdentity['logo_data']) ?>" alt=""><?php else: ?>
                     <svg viewBox="0 0 40 40" fill="none">
                         <path d="M7 16.5 20 7l13 9.5v15a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-15Z" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
                         <path d="M15 33V21h10v12M13 16h14" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
                         <path d="M18 16v-3h4v3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
                     </svg>
+                    <?php endif; ?>
                 </span>
                 <span class="brand-copy">
-                    <strong>KIOSK</strong>
-                    <span>KECAMATAN</span>
+                    <strong><?= identity_escape($publicIdentity['kiosk_title']) ?></strong>
+                    <span><?= identity_escape($publicIdentity['region_name'] !== '' ? $publicIdentity['region_name'] : 'KECAMATAN') ?></span>
                 </span>
             </a>
 
@@ -52,7 +59,7 @@
                 <div class="hero-copy">
                     <span class="eyebrow"><span class="eyebrow-dot"></span> INFORMASI LAYANAN KECAMATAN</span>
                     <h1>Urus kebutuhan kecamatan, <span>lebih mudah dan jelas.</span></h1>
-                    <p class="hero-description">Temukan informasi layanan, pahami persyaratannya, dan ketahui ke mana harus mengurusnya. Semua dimulai dari sini.</p>
+                    <p class="hero-description"><?= identity_escape($publicIdentity['tagline']) ?></p>
                     <div class="hero-actions">
                         <a class="button button-primary" href="#layanan">
                             Jelajahi layanan
@@ -233,16 +240,18 @@
         <div class="container footer-main">
             <a class="brand footer-brand" href="#beranda" aria-label="KIOSK Kecamatan, kembali ke atas">
                 <span class="brand-mark" aria-hidden="true">
+                    <?php if ($publicIdentity['logo_data'] !== ''): ?><img src="<?= identity_escape($publicIdentity['logo_data']) ?>" alt=""><?php else: ?>
                     <svg viewBox="0 0 40 40" fill="none"><path d="M7 16.5 20 7l13 9.5v15a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-15Z" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M15 33V21h10v12M13 16h14" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg>
+                    <?php endif; ?>
                 </span>
-                <span class="brand-copy"><strong>KIOSK</strong><span>KECAMATAN</span></span>
+                <span class="brand-copy"><strong><?= identity_escape($publicIdentity['kiosk_title']) ?></strong><span><?= identity_escape($publicIdentity['region_name'] !== '' ? $publicIdentity['region_name'] : 'KECAMATAN') ?></span></span>
             </a>
             <p>Informasi layanan kecamatan yang lebih mudah dijangkau.</p>
             <a href="#beranda" class="back-to-top">Kembali ke atas <span aria-hidden="true">↑</span></a>
         </div>
         <div class="container footer-bottom">
-            <span>© <span id="current-year">2026</span> KIOSK Kecamatan</span>
-            <span>Informasi mengikuti data resmi kecamatan.</span>
+            <span>© <span id="current-year">2026</span> <?= identity_escape($publicIdentity['kiosk_title']) ?></span>
+            <span><?= identity_escape($publicIdentity['footer_text']) ?></span>
         </div>
     </footer>
 </body>
