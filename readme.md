@@ -245,6 +245,12 @@ Persyaratan katalog/pengajuan dapat ditambah/ubah/hapus per baris (maksimal 50; 
 
 Simpan konten/transaksi/persyaratan bersifat atomik dengan CSRF, pemeriksaan versi, validasi server dan audit. Toggle status hanya mengubah publikasi, tidak mengubah konfigurasi transaksi. Hapus langsung outline merah hanya tersedia bila tidak ada pengajuan atau riwayat sequence nomor pengambilan; FK RESTRICT tetap melindungi. Gunakan OFF untuk layanan yang pernah dipakai. Nama/DEMO pada pengajuan lama merupakan snapshot dan tidak ditimpa perubahan master. Uji: `php tests/service-master.php`, `php tests/service-catalog.php`, dan `php tests/submissions.php`.
 
+#### CRUD pengumuman
+
+Admin `dashboard.php?module=announcements` mengelola judul (maksimal 180 byte), isi teks biasa (10000 byte), prioritas 0–9999 (angka besar tampil lebih dulu), status ON/OFF dan periode tayang opsional. Tabel memakai search rata kanan, sort, pagination 5/10/25/50; tambah/ubah memakai modal dengan header/footer tetap, isi scroll, Simpan/Batal di footer. Hapus outline merah langsung menghapus. Pengumuman baru default OFF. Mutasi memakai CSRF, versi optimistis, transaksi dan audit. Jika validasi gagal, modal menampilkan error dan mempertahankan isian/versi.
+
+Migrasi `013_announcements.sql` melalui `php bin/migrate.php`. Pengumuman aktif yang sesuai jadwal tampil lengkap pada bagian **Pengumuman** di bawah menu beranda `kiosk.php`. Waktu input/tayang menggunakan WIB; batas akhir mencakup menit yang dipilih, batas kosong berarti tanpa batas. Prioritas sama diurutkan dari pengumuman terbaru. OFF/di luar jadwal tidak tampil; tidak ada blok kosong jika belum ada pengumuman. Perubahan dibaca saat beranda dimuat ulang, tanpa polling/notifikasi otomatis. Isi di-escape, bukan HTML aktif; jangan masukkan data pribadi atau informasi rekaan sebagai pengumuman resmi. Uji `php tests/announcements.php`.
+
 #### CRUD kategori layanan
 
 Status memakai toggle Aktif/Nonaktif pada tabel dan form modal. Toggle tabel langsung menyimpan melalui POST dengan CSRF dan pemeriksaan versi; toggle modal disimpan bersama tombol Simpan. Menonaktifkan kategori menyembunyikan kategori dan seluruh layanannya dari katalog, detail, dan pilihan pengajuan publik saat halaman dimuat ulang. Mengaktifkan kembali memulihkan layanan yang masih dipublikasikan dan berlaku; tiket lama tetap dapat dicek.

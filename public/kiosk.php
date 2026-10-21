@@ -51,6 +51,19 @@ if (!is_string($selected) || ($selected !== '' && !isset($menus[$selected]))) {
 }
 $page = $selected === '' ? null : $menus[$selected];
 $now = new DateTimeImmutable('now', new DateTimeZone('Asia/Jakarta'));
+$announcements = [];
+$announcementsError = '';
+if ($selected === '') {
+    require_once dirname(__DIR__) . '/app/database.php';
+    require_once dirname(__DIR__) . '/app/announcements.php';
+    try {
+        $announcements = public_announcements(open_database(), $now);
+    } catch (RuntimeException $error) {
+        error_log('Pengumuman publik gagal dimuat: ' . get_class($error));
+        http_response_code(503);
+        $announcementsError = 'Pengumuman belum dapat dimuat. Silakan hubungi petugas untuk informasi terbaru.';
+    }
+}
 $isTransaction = in_array($selected, ['pengajuan', 'status', 'bukti'], true);
 if ($isTransaction) require dirname(__DIR__) . '/app/public-submissions-controller.php';
 if ($selected === 'pengaduan') require dirname(__DIR__) . '/app/public-complaints-controller.php';
@@ -191,6 +204,7 @@ function kiosk_icon(string $name): string
                     <?php endforeach; ?>
                 </div>
             </section>
+            <?php require dirname(__DIR__) . '/app/views/public-announcements.php'; ?>
             <aside class="public-notice"><?= kiosk_icon('help') ?><p><strong>Informasi untuk Anda</strong> Katalog menampilkan layanan yang dipublikasikan pengelola. Pengajuan tersedia sesuai pengaturan layanan; data DEMO hanya untuk simulasi. Surat final dan nomor pengambilan tersedia setelah layanan diselesaikan admin. Antrean dan janji lintas instansi hanya simulasi lokal, bukan reservasi resmi.</p></aside>
         <?php elseif ($selected === 'bantuan'): ?>
             <?php require dirname(__DIR__) . '/app/views/public-help.php'; ?>

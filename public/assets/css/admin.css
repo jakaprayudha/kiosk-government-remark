@@ -122,7 +122,7 @@ h1, h2, h3, p { margin-top: 0; }
 .service-requirement label { display: block; }
 .service-requirement legend { font-weight: 650; }
 .service-requirement .button.button-danger-outline { border: 1px solid #d95362; }
-.category-dialog :is([data-category-close], [data-service-close], [data-guide-close]) { border: 1px solid var(--line); background: #f5f7fb; }
+.category-dialog :is([data-category-close], [data-service-close], [data-guide-close], [data-announcement-close]) { border: 1px solid var(--line); background: #f5f7fb; }
 html:has(.category-dialog:modal) { overflow: hidden; }
 table { width: 100%; border-collapse: collapse; text-align: left; }
 thead { color: #8b97a9; background: #fafbfd; }

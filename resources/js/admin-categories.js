@@ -2,8 +2,9 @@ import { DataTable } from 'simple-datatables';
 
 const serviceTable = document.querySelector('#service-table');
 const guideTable = document.querySelector('#guide-table');
-const table = document.querySelector('#category-table') || serviceTable || guideTable;
-const entity = serviceTable ? 'layanan' : guideTable ? 'panduan' : 'kategori';
+const announcementTable = document.querySelector('#announcement-table');
+const table = document.querySelector('#category-table') || serviceTable || guideTable || announcementTable;
+const entity = serviceTable ? 'layanan' : guideTable ? 'panduan' : announcementTable ? 'pengumuman' : 'kategori';
 if (table) {
     new DataTable(table, {
         perPage: 10,
@@ -19,7 +20,7 @@ if (table) {
             info: `Menampilkan {start}–{end} dari {rows} ${entity}`,
         },
         columns: [
-            { select: serviceTable ? [2] : guideTable ? [2, 3] : [1, 3], type: 'number' },
+            { select: serviceTable ? [2] : guideTable ? [2, 3] : announcementTable ? [1] : [1, 3], type: 'number' },
             { select: serviceTable || guideTable ? 5 : 4, sortable: false, searchable: false },
         ],
     });
@@ -32,6 +33,42 @@ if (table) {
             input.form.requestSubmit();
         }
     });
+}
+
+const announcementDialog = document.querySelector('#announcement-dialog');
+const announcementForm = document.querySelector('#announcement-form');
+const announcementAdd = document.querySelector('#announcement-add');
+if (announcementDialog && announcementForm && announcementAdd) {
+    announcementAdd.addEventListener('click', (event) => {
+        event.preventDefault();
+        announcementForm.reset();
+        announcementForm.action = announcementAdd.href.replace('&new=1', '');
+        announcementForm.querySelectorAll('input:not([type=hidden]),textarea').forEach((input) => {
+            if (input.type === 'checkbox') input.checked = false;
+            else input.value = '';
+        });
+        announcementForm.elements.namedItem('version').value = '0';
+        announcementForm.elements.namedItem('priority').value = '0';
+        announcementDialog.querySelectorAll('.admin-error').forEach((error) => error.remove());
+        document.querySelector('#announcement-dialog-title').textContent = 'Tambah pengumuman';
+        announcementDialog.showModal();
+        announcementForm.elements.namedItem('title').focus();
+    });
+    announcementDialog.querySelectorAll('[data-announcement-close]').forEach((close) => close.addEventListener('click', (event) => {
+        event.preventDefault();
+        announcementDialog.close();
+    }));
+    announcementDialog.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            announcementDialog.close();
+        }
+    });
+    announcementDialog.addEventListener('close', () => announcementAdd.focus());
+    if (announcementDialog.hasAttribute('data-auto-open')) {
+        announcementDialog.removeAttribute('open');
+        announcementDialog.showModal();
+    }
 }
 
 const guideDialog = document.querySelector('#guide-dialog');
