@@ -396,6 +396,12 @@ Menu **Laporan** (`admin/dashboard.php?module=reports`) aktif untuk admin pusat.
 
 Seluruh angka menggunakan **tanggal transaksi dibuat**, dikonversi dari WIB ke batas UTC dengan tanggal akhir inklusif. Tanggal jadwal antrean tidak menjadi dasar periode ini. Status adalah keadaan terkini, bukan histori perubahan atau jumlah penyelesaian pada periode terpilih. Hanya transaksi belum kedaluwarsa yang dihitung; laporan bukan arsip historis permanen karena retensi/purge. Data DEMO ikut dihitung, antrean tetap simulasi, dan hasil masih gabungan semua kecamatan. Tidak mengambil nama, NIK, kontak atau catatan internal warga. Belum mencakup ekspor atau filter per kecamatan. Uji `php tests/reports.php`.
 
+### Rekap aktivitas kecamatan pada dashboard pusat
+
+Terapkan `php bin/migrate.php` (migrasi `015_kiosk_device_activity`). Dashboard pusat menampilkan akun admin aktif/total per kecamatan, login berhasil hari ini WIB, login terakhir, perangkat aktif/total, jumlah pemuatan halaman KIOSK dan waktu terakhir dibuka WIB. Admin pusat tidak dimasukkan ke login kecamatan. Login terakhir memakai `users.last_login_at`; login harian memakai audit login akun yang masih terdaftar. Akun/perangkat terhapus tidak masuk rekap lagi.
+
+Aktivitas KIOSK mulai dicatat sejak fitur ini diterapkan, tanpa mengarang data lampau. Setiap GET ke `kiosk.php` dengan cookie perangkat terdaftar dan aktif menambah penghitung, termasuk reload/pindah menu; POST, browser tanpa penetapan dan token dicabut tidak dihitung. Tidak menyimpan IP, isi formulir atau token mentah. Penghitung bukan jumlah orang/sesi unik, bukan login masyarakat dan bukan indikator online/heartbeat; halaman yang dibiarkan terbuka tidak memperbarui waktu. Data di-refresh saat dashboard dimuat ulang. Belum mencatat jumlah transaksi per kecamatan. Uji `php tests/office-activity.php`.
+
 ## 10. Tahapan implementasi
 
 1. **Fondasi:** skema/migrasi SQLite, login admin, kontrol peran, audit log, dan pengelolaan profil kantor.

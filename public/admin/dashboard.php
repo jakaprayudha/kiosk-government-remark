@@ -30,6 +30,15 @@ if (in_array($module, ['office', 'users'], true)) require dirname(__DIR__, 2) . 
 $stats = null;
 $events = [];
 if ($module === 'dashboard') {
+    require_once dirname(__DIR__, 2) . '/app/office-activity.php';
+    $officeActivityRows = [];
+    $officeActivityError = '';
+    try {
+        $officeActivityRows = office_activity_recap(db());
+    } catch (RuntimeException $error) {
+        error_log('Rekap aktivitas kecamatan gagal: ' . $error->getMessage());
+        $officeActivityError = 'Rekap aktivitas kecamatan gagal dimuat. Muat ulang atau hubungi pengelola.';
+    }
     $stats = db()->query(
         "SELECT
             (SELECT COUNT(*) FROM users WHERE role = 'admin' AND is_active = 1) AS active_admins,
@@ -135,6 +144,8 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
                         <article class="stat-card"><div class="stat-top"><span><?= escape($stat['label']) ?></span><span class="icon-box <?= escape($stat['tone']) ?>"><?= admin_icon($stat['icon']) ?></span></div><strong class="stat-number"><?= number_format((int) $stat['value'], 0, ',', '.') ?></strong><p><?= escape($stat['note']) ?></p></article>
                     <?php endforeach; ?>
                 </section>
+
+                <?php require dirname(__DIR__, 2) . '/app/views/admin-office-activity.php'; ?>
 
                 <div class="dashboard-grid">
                     <section class="panel">

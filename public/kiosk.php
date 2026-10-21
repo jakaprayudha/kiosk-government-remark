@@ -1,6 +1,17 @@
 <?php
 declare(strict_types=1);
 require_once dirname(__DIR__) . '/app/public-session.php';
+require_once dirname(__DIR__) . '/app/database.php';
+require_once dirname(__DIR__) . '/app/office-activity.php';
+$kioskActivityError = '';
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_COOKIE['kiosk_device'])) {
+    try {
+        record_kiosk_activity(open_database(), $_COOKIE['kiosk_device']);
+    } catch (RuntimeException $error) {
+        error_log('Pencatatan aktivitas KIOSK gagal: ' . $error->getMessage());
+        $kioskActivityError = 'Aktivitas perangkat belum dapat dicatat. Informasikan kepada petugas.';
+    }
+}
 
 $menus = [
     'layanan' => ['title' => 'Layanan administrasi', 'text' => 'Kenali layanan dan kanal pengurusan yang tepat.', 'icon' => 'document', 'tone' => 'blue', 'status' => 'Katalog layanan',
@@ -195,6 +206,7 @@ function kiosk_icon(string $name): string
         <div class="clock"><time id="kiosk-clock" datetime="<?= kiosk_escape($now->format(DATE_ATOM)) ?>"><?= $now->format('H:i:s') ?> WIB</time><span id="kiosk-date"><?= $now->format('d/m/Y') ?></span></div>
     </header>
     <main id="konten-kiosk" class="kiosk-container">
+        <?php if ($kioskActivityError !== ''): ?><p class="transaction-error" role="alert"><?= kiosk_escape($kioskActivityError) ?></p><?php endif; ?>
         <?php if ($page === null): ?>
             <section class="welcome">
                 <div><span class="eyebrow">SELAMAT DATANG DI KIOSK KECAMATAN</span><h1>Ada yang bisa kami bantu?</h1><p>Sentuh menu di bawah untuk menemukan informasi yang Anda butuhkan.</p><span class="welcome-note">Mudah digunakan <i></i> Tanpa perlu akun <i></i> Bahasa Indonesia</span></div>
