@@ -3,7 +3,9 @@ declare(strict_types=1);
 require_once __DIR__ . '/office-management.php';
 $officeAdminError = '';
 $officeRecords = $officeOptions = [];
-$officeTab = $_GET['tab'] ?? 'profiles';
+$officeAccountsPage = $module === 'users';
+$officeModule = $officeAccountsPage ? 'users' : 'office';
+$officeTab = $officeAccountsPage ? 'accounts' : ($_GET['tab'] ?? 'profiles');
 $officeDefinitions = office_master_definitions();
 if (!is_string($officeTab) || !isset($officeDefinitions[$officeTab])) { http_response_code(400); exit('Tab profil tidak valid.'); }
 $officeScope = $admin['office_id'];
@@ -59,7 +61,7 @@ try {
             $savedId = mutate_office_master(db(), (int) $admin['id'], $officeTab, $managedOfficeId, $officeRecordId, $version, $action, $_POST);
             if ($officeTab === 'profiles') $managedOfficeId = $action === 'delete' ? 0 : $savedId;
         }
-        redirect_to('/admin/dashboard.php?module=office&tab=' . $officeTab . '&office_id=' . $managedOfficeId . '&saved=1');
+        redirect_to('/admin/dashboard.php?module=' . $officeModule . '&tab=' . $officeTab . '&office_id=' . $managedOfficeId . '&saved=1');
     }
     if ($officeTab === 'profiles') {
         $q = db()->prepare('SELECT * FROM office_profiles' . ($officeScope === null ? '' : ' WHERE id=?') . ' ORDER BY name,id');
@@ -76,4 +78,4 @@ try {
     error_log('Profil kecamatan gagal diproses: ' . $error->getMessage());
     http_response_code(503); $officeAdminError = 'Data kecamatan gagal diproses. Muat ulang dan hubungi pengelola.';
 }
-$officeBaseUrl = 'dashboard.php?module=office&tab=' . $officeTab . '&office_id=' . $managedOfficeId;
+$officeBaseUrl = 'dashboard.php?module=' . $officeModule . '&tab=' . $officeTab . '&office_id=' . $managedOfficeId;

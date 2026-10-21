@@ -1,21 +1,26 @@
 <?php if ($officeAdminError !== ''): ?><p class="admin-error" role="alert"><?= escape($officeAdminError) ?></p><?php endif; ?>
-<?php if ($officeAdminError === '' && isset($_GET['saved'])): ?><p class="admin-success" role="status">Perubahan tersimpan. Publik KIOSK membaca perubahan saat halaman dimuat ulang.</p><?php endif; ?>
+<?php if ($officeAdminError === '' && isset($_GET['saved'])): ?><p class="admin-success" role="status"><?= $officeTab === 'accounts' ? 'Perubahan akun admin kecamatan tersimpan.' : 'Perubahan tersimpan. Publik KIOSK membaca perubahan saat halaman dimuat ulang.' ?></p><?php endif; ?>
 <section class="panel admin-detail">
-    <h2>Pengelolaan kecamatan</h2>
-    <p>Tahap ini hanya profil, desa dan sarana yang terpisah per kecamatan. Layanan, pengumuman, pengajuan, pengaduan dan antrean masih bersama; admin kecamatan tidak dapat mengakses modul tersebut.</p>
+    <h2><?= $officeAccountsPage ? 'Akun admin per kecamatan' : 'Pengelolaan kecamatan' ?></h2>
+    <p><?= $officeAccountsPage ? 'Khusus admin pusat. Pilih kecamatan untuk menambah akun, mengganti password, mengaktifkan atau menonaktifkan akses. Akun tetap terikat pada kecamatan asal dan tidak dapat dipromosikan menjadi admin pusat melalui menu ini.' : 'Tahap ini hanya profil, desa dan sarana yang terpisah per kecamatan. Layanan, pengumuman, pengajuan, pengaduan dan antrean masih bersama; admin kecamatan tidak dapat mengakses modul tersebut.' ?></p>
     <?php if ($officeScope === null): ?><form method="get" class="admin-filter">
-        <input type="hidden" name="module" value="office"><input type="hidden" name="tab" value="<?= escape($officeTab) ?>">
-        <label for="office-selector">Kecamatan yang dikelola</label><select name="office_id" id="office-selector"><option value="0">Pilih kecamatan</option><?php foreach ($officeOptions as $option): ?><option value="<?= (int) $option['id'] ?>" <?= $managedOfficeId === (int) $option['id'] ? 'selected' : '' ?>><?= escape($option['name']) ?></option><?php endforeach; ?></select><button class="button button-primary">Tampilkan</button>
+        <input type="hidden" name="module" value="<?= escape($officeModule) ?>"><input type="hidden" name="tab" value="<?= escape($officeTab) ?>">
+        <label for="office-selector">Kecamatan yang dikelola</label><select name="office_id" id="office-selector" data-auto-submit><option value="0">Pilih kecamatan</option><?php foreach ($officeOptions as $option): ?><option value="<?= (int) $option['id'] ?>" <?= $managedOfficeId === (int) $option['id'] ? 'selected' : '' ?>><?= escape($option['name']) ?></option><?php endforeach; ?></select><noscript><button class="button button-primary">Tampilkan</button></noscript>
     </form><?php else: ?><p><strong><?= escape($officeOptions[0]['name'] ?? 'Kecamatan Anda') ?></strong> — akses khusus wilayah ini.</p><?php endif; ?>
+    <?php if ($officeAccountsPage): ?>
+        <?php if ($officeOptions === []): ?><p>Belum ada kecamatan. Tambahkan profil kecamatan terlebih dahulu.</p><?php endif; ?>
+        <a class="button category-edit" href="dashboard.php?module=office<?= $managedOfficeId > 0 ? '&amp;office_id=' . $managedOfficeId : '' ?>">Kelola profil kecamatan</a>
+    <?php else: ?>
     <nav class="office-tabs" aria-label="Data kecamatan">
         <?php foreach ($officeDefinitions as $key => $definition): ?>
             <?php if ($officeScope !== null && in_array($key, ['accounts', 'devices'], true)) continue; ?>
             <a class="button <?= $officeTab === $key ? 'button-primary' : 'category-edit' ?>" href="dashboard.php?module=office&amp;tab=<?= escape($key) ?>&amp;office_id=<?= $managedOfficeId ?>" <?= $officeTab === $key ? 'aria-current="page"' : '' ?>><?= escape($definition['label']) ?></a>
         <?php endforeach; ?>
     </nav>
+    <?php endif; ?>
 </section>
 <?php if ($officeTab !== 'profiles' && $managedOfficeId === 0): ?>
-    <p class="admin-error">Pilih kecamatan terlebih dahulu untuk mengelola data wilayah.</p>
+    <p class="notice" role="status">Pilih kecamatan terlebih dahulu untuk mengelola <?= $officeAccountsPage ? 'akun admin wilayahnya' : 'data wilayah' ?>.</p>
 <?php else: ?>
 <section class="panel category-panel">
     <div class="panel-heading"><div><h2><?= escape($officeDefinitions[$officeTab]['label']) ?> (<?= count($officeRecords) ?>)</h2><p>ON/OFF langsung menyimpan; form tambah/ubah melalui modal.</p></div>
@@ -27,10 +32,10 @@
             <p><a class="button category-edit" href="../kiosk.php?menu=kantor" target="_blank" rel="noopener noreferrer">Lihat profil publik browser ini (tab baru)</a></p>
         </div>
     <?php elseif ($officeTab === 'accounts'): ?><p class="admin-detail">Login melalui halaman admin yang sama. Akun hanya bisa mengelola profil, desa dan sarana kecamatan terpilih. Password tidak ditampilkan/disimpan ulang pada error; penggantian password oleh admin pusat di sini. Tidak ada kode pemulihan otomatis untuk akun baru.</p><?php endif; ?>
-    <div class="category-table"><table id="office-table"><thead><tr><th scope="col">Nama</th><th scope="col">Keterangan</th><th scope="col">Status</th><th scope="col">Aksi</th></tr></thead><tbody>
+    <div class="category-table"><table id="office-table"><thead><tr><th scope="col">Nama</th><th scope="col"><?= $officeTab === 'accounts' ? 'Username / kecamatan' : 'Keterangan' ?></th><th scope="col">Status</th><th scope="col">Aksi</th></tr></thead><tbody>
         <?php foreach ($officeRecords as $record): ?>
             <?php $key = in_array($officeTab, ['accounts', 'devices'], true) ? 'is_active' : 'is_published'; $rowUrl = $officeBaseUrl . '&id=' . (int) $record['id']; ?>
-            <tr><td><?= escape($record['name']) ?></td><td><?= escape($record['username'] ?? $record['slug'] ?? 'Perangkat terdaftar') ?><?php if ($officeTab === 'profiles'): ?><span class="table-note"><?= escape($record['regency']) ?></span><?php endif; ?></td>
+            <tr><td><?= escape($record['name']) ?></td><td><?= escape($record['username'] ?? $record['slug'] ?? 'Perangkat terdaftar') ?><?php if ($officeTab === 'accounts'): ?><?php foreach ($officeOptions as $option): if ((int) $option['id'] !== $managedOfficeId) continue; ?><span class="table-note"><?= escape($option['name']) ?></span><?php endforeach; ?><?php elseif ($officeTab === 'profiles'): ?><span class="table-note"><?= escape($record['regency']) ?></span><?php endif; ?></td>
                 <td><form method="post" action="<?= escape($rowUrl) ?>" class="category-status-form"><input type="hidden" name="csrf_token" value="<?= escape(csrf_token()) ?>"><input type="hidden" name="action" value="toggle"><input type="hidden" name="version" value="<?= (int) $record['version'] ?>">
                     <label class="category-switch"><input type="checkbox" role="switch" name="<?= escape($key) ?>" value="1" aria-label="Aktifkan <?= escape($record['name']) ?>" <?= (int) $record[$key] === 1 ? 'checked' : '' ?>><span class="category-switch-track" aria-hidden="true"></span><span><?= (int) $record[$key] === 1 ? 'Aktif' : 'Nonaktif' ?></span></label><noscript><button class="button">Simpan status</button></noscript>
                 </form></td>
@@ -63,7 +68,7 @@
                     <?= in_array($type, ['required', 'slug', 'username', 'integer', 'latitude', 'longitude'], true) || $key === 'name' || ($type === 'password' && $officeRecordId === 0) ? 'required' : '' ?>></label>
                 <?php endif; ?>
             <?php endforeach; ?>
-            <p>OFF tidak menghapus data. Profil OFF menyembunyikan seluruh desa/sarananya di publik. Pastikan koordinat benar; DEMO hanya untuk data contoh. Kode desa/sarana unik dalam kecamatan yang sama.</p>
+            <p><?= $officeTab === 'accounts' ? 'OFF menghentikan akses login dan sesi admin pada permintaan berikutnya tanpa menghapus akun. Password kosong saat ubah mempertahankan password lama. Akun hanya mengelola profil, desa dan sarana wilayahnya; tidak dapat membuka modul pusat.' : 'OFF tidak menghapus data. Profil OFF menyembunyikan seluruh desa/sarananya di publik. Pastikan koordinat benar; DEMO hanya untuk data contoh. Kode desa/sarana unik dalam kecamatan yang sama.' ?></p>
         </form>
     </div>
     <div class="category-dialog-footer"><a class="button" data-office-close href="<?= escape($officeBaseUrl) ?>">Batal</a><button class="button button-primary" type="submit" form="office-form">Simpan</button></div>

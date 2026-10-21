@@ -25,7 +25,7 @@ if ($module === 'queues') require dirname(__DIR__, 2) . '/app/admin-queues-contr
 if ($module === 'services') require dirname(__DIR__, 2) . '/app/admin-service-settings.php';
 if ($module === 'document-guides') require dirname(__DIR__, 2) . '/app/admin-document-guides.php';
 if ($module === 'announcements') require dirname(__DIR__, 2) . '/app/admin-announcements.php';
-if ($module === 'office') require dirname(__DIR__, 2) . '/app/admin-office.php';
+if (in_array($module, ['office', 'users'], true)) require dirname(__DIR__, 2) . '/app/admin-office.php';
 $stats = null;
 $events = [];
 if ($module === 'dashboard') {
@@ -62,7 +62,7 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f5f7fb">
     <title><?= escape($page['label']) ?> — Admin KIOSK Kecamatan</title>
-    <?php if (in_array($module, ['categories', 'services', 'document-guides', 'announcements', 'office', 'queues'], true)): ?>
+    <?php if (in_array($module, ['categories', 'services', 'document-guides', 'announcements', 'office', 'queues', 'users'], true)): ?>
         <link rel="stylesheet" href="../assets/css/admin-categories.css?v=<?= filemtime(dirname(__DIR__) . '/assets/css/admin-categories.css') ?>">
         <script src="../assets/js/admin-categories.js?v=<?= filemtime(dirname(__DIR__) . '/assets/js/admin-categories.js') ?>" defer></script>
     <?php endif; ?>
@@ -89,7 +89,7 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
                    <?= $module === $key ? 'aria-current="page"' : '' ?>>
                     <?= admin_icon($item['icon']) ?>
                     <span><?= escape($item['label']) ?></span>
-                    <?php if (!in_array($key, ['dashboard', 'categories', 'submissions', 'complaints', 'queues', 'services', 'document-guides', 'announcements', 'office'], true)): ?><span class="planned-dot" title="Modul belum tersedia"><span class="sr-only">Belum tersedia</span></span><?php endif; ?>
+                    <?php if (!in_array($key, ['dashboard', 'categories', 'submissions', 'complaints', 'queues', 'services', 'document-guides', 'announcements', 'office', 'users'], true)): ?><span class="planned-dot" title="Modul belum tersedia"><span class="sr-only">Belum tersedia</span></span><?php endif; ?>
                 </a>
             <?php endforeach; ?>
         </nav>
@@ -190,7 +190,7 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
                 <?php require dirname(__DIR__, 2) . '/app/views/admin-document-guides.php'; ?>
             <?php elseif ($module === 'announcements'): ?>
                 <?php require dirname(__DIR__, 2) . '/app/views/admin-announcements.php'; ?>
-            <?php elseif ($module === 'office'): ?>
+            <?php elseif (in_array($module, ['office', 'users'], true)): ?>
                 <?php require dirname(__DIR__, 2) . '/app/views/admin-office.php'; ?>
             <?php else: ?>
                 <section class="panel placeholder-panel">

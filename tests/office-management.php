@@ -95,4 +95,26 @@ mutate_office_master($pdo, $central, 'accounts', $a, $adminA, 2, 'toggle', []);
 rejected(fn() => office_actor($pdo, $adminA));
 mutate_office_master($pdo, $central, 'villages', $a, $va, 3, 'delete', []);
 mutate_office_master($pdo, $central, 'facilities', $a, $fa, 2, 'delete', []);
-echo "PASS: CRUD, isolasi dua kecamatan, akun/password, versi, rollback, validasi, perangkat/rebind/revokasi, publikasi induk/anak.\n";
+function escape(string $text): string { return htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
+function csrf_token(): string { return 'test'; }
+$officeAdminError = '';
+$officeAccountsPage = true;
+$officeModule = 'users';
+$officeTab = 'accounts';
+$officeScope = null;
+$managedOfficeId = $a;
+$officeRecordId = 0;
+$officeDefinitions = office_master_definitions();
+$officeOptions = [['id' => $a, 'name' => 'Kecamatan alpha']];
+$officeRecords = [['id' => $adminA, 'name' => '<script>Admin</script>', 'username' => 'admin-a', 'version' => 3, 'is_active' => 0]];
+$officeForm = office_master_defaults('accounts');
+$officeModalOpen = false;
+$officeBaseUrl = 'dashboard.php?module=users&tab=accounts&office_id=' . $a;
+ob_start();
+require dirname(__DIR__) . '/app/views/admin-office.php';
+$html = ob_get_clean();
+foreach (['Akun admin per kecamatan', 'name="module" value="users"', 'data-auto-submit', 'Username / kecamatan', 'Kecamatan alpha', 'module=users&amp;tab=accounts', 'id="office-dialog"', 'role="switch"', '&lt;script&gt;Admin&lt;/script&gt;'] as $text) {
+    check(str_contains($html, $text), 'Menu akun tidak lengkap: ' . $text);
+}
+check(!str_contains($html, '<script>Admin</script>') && !str_contains($html, 'name="role"') && !str_contains($html, 'name="password_hash"'), 'Menu akun tidak boleh membocorkan hash atau menyediakan promosi role.');
+echo "PASS: CRUD, isolasi dua kecamatan, akun/password, versi, rollback, validasi, perangkat/rebind/revokasi, publikasi induk/anak, menu users dan escaping.\n";

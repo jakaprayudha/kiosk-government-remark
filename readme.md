@@ -360,6 +360,8 @@ Panduan kendala mencakup scan QR kamera/USB, foto pengajuan, cetak bukti/PDF, PI
 
 ### Profil multi-kecamatan, akun wilayah dan penetapan KIOSK
 
+Menu **Akun & petugas** (`admin/dashboard.php?module=users`) khusus admin pusat untuk mengelola akun admin masing-masing kecamatan. Pilih kecamatan (daftar langsung berubah), lalu tambah/ubah akun melalui modal, ganti password, toggle akses ON/OFF atau hapus akun. Tabel menampilkan nama, username, kecamatan dan status dengan search/sort/pagination. Akun pusat tidak ditampilkan/dapat dibuat di sini; role dan kecamatan akun tidak dapat diubah melalui formulir. Menu ini menggunakan penyimpanan dan pemeriksaan akses yang sama dengan tab Admin kecamatan pada Profil kecamatan, sehingga keduanya selalu sinkron. Admin kecamatan sendiri tidak dapat membuka menu ini.
+
 Menu admin **Profil kecamatan** (`admin/dashboard.php?module=office`) kini mengelola banyak kecamatan dalam satu aplikasi/SQLite. Terapkan `php bin/migrate.php` untuk migrasi `014_office_admin_scope`; akun admin lama tetap **admin pusat** (`users.office_id IS NULL`).
 
 1. Admin pusat menambah profil kecamatan: kode unik, nama, kabupaten/provinsi, alamat, jam pelayanan, kontak, sumber resmi, koordinat dan status publikasi.
