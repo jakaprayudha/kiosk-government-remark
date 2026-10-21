@@ -1,0 +1,1 @@
+ALTER TABLE service_categories ADD COLUMN version INTEGER NOT NULL DEFAULT 1;

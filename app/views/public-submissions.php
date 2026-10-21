@@ -50,7 +50,10 @@
                         <?php if ((int) $transactionService['camera_enabled'] === 1): foreach ($transactionRequirements as $requirement): ?><option value="<?= (int) $requirement['id'] ?>"><?= kiosk_escape($requirement['name']) ?> — <?= (int) $requirement['is_required'] === 1 ? 'dokumen wajib dibawa' : 'dokumen opsional' ?></option><?php endforeach; endif; ?>
                     </select>
                     <div class="action-buttons"><button class="footer-button" type="button" id="start-camera">Aktifkan kamera</button><button class="footer-button" type="button" id="stop-camera" hidden>Matikan kamera</button></div>
-                    <video id="document-camera" autoplay playsinline muted hidden aria-label="Pratinjau kamera dokumen"></video>
+                    <div id="document-camera-preview" class="document-camera-preview" hidden>
+                        <video id="document-camera" autoplay playsinline muted hidden aria-label="Pratinjau kamera foto" aria-describedby="camera-message"></video>
+                        <div id="face-guide" class="face-guide" hidden aria-hidden="true"></div>
+                    </div>
                     <button class="footer-button" type="button" id="capture-photo" hidden>Ambil foto</button>
                     <div id="capture-preview" hidden><img alt="Pratinjau foto sebelum digunakan"><div class="action-buttons"><button class="footer-button" type="button" id="accept-photo">Gunakan foto</button><button class="footer-button" type="button" id="retake-photo">Ulangi</button></div></div>
                     <div id="photo-list"></div>

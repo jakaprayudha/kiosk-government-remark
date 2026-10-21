@@ -4,7 +4,7 @@
 <?php elseif ($service !== null): ?>
     <article class="detail-panel service-detail">
         <?php if ((int) $service['is_demo'] === 1): ?><p class="demo-banner">SIMULASI DEMO — bukan layanan resmi. Jangan gunakan identitas atau dokumen pribadi asli.</p><?php endif; ?>
-        <span class="menu-icon blue"><?= kiosk_icon('document') ?></span>
+        <span class="menu-icon blue"><?= kiosk_icon(isset(service_category_icons()[$service['category_icon']]) ? $service['category_icon'] : 'document') ?></span>
         <span class="detail-category"><?= kiosk_escape($service['category_name']) ?></span>
         <h1><?= kiosk_escape($service['name']) ?></h1>
         <?php if ($service['summary'] !== ''): ?><p class="detail-intro"><?= kiosk_escape($service['summary']) ?></p><?php endif; ?>
@@ -59,13 +59,14 @@
         </nav>
     <?php endif; ?>
     <p class="catalog-count"><?= count($catalog) ?> layanan tersedia<?= $category !== '' ? ' dalam kategori yang dipilih' : '' ?>.</p>
+    <?php if ($category !== '' && $catalog !== [] && $catalog[0]['category_description'] !== ''): ?><p class="multiline"><?= kiosk_escape($catalog[0]['category_description']) ?></p><?php endif; ?>
     <?php if ($catalog === []): ?>
         <section class="catalog-empty"><span class="menu-icon blue"><?= kiosk_icon('document') ?></span><h2><?= $category === '' ? 'Belum ada layanan dipublikasikan' : 'Belum ada layanan di kategori ini' ?></h2><p>Silakan tanyakan informasi layanan kepada petugas di lokasi. Daftar akan tampil setelah data resmi diisi dan dipublikasikan oleh pengelola.</p></section>
     <?php else: ?>
         <div class="catalog-grid">
             <?php foreach ($catalog as $entry): ?>
                 <a class="menu-card" href="kiosk.php?menu=<?= kiosk_escape($selected) ?>&amp;layanan=<?= (int) $entry['id'] ?>" data-menu-voice="<?= kiosk_escape($entry['name']) ?>">
-                    <span class="card-top"><span class="menu-icon blue"><?= kiosk_icon('document') ?></span><span class="menu-status"><?= kiosk_escape($entry['category_name']) ?></span></span>
+                    <span class="card-top"><span class="menu-icon blue"><?= kiosk_icon(isset(service_category_icons()[$entry['category_icon']]) ? $entry['category_icon'] : 'document') ?></span><span class="menu-status"><?= kiosk_escape($entry['category_name']) ?></span></span>
                     <h2><?= kiosk_escape($entry['name']) ?></h2>
                     <p><?= kiosk_escape($entry['summary'] !== '' ? $entry['summary'] : 'Lihat informasi lengkap dan persyaratan layanan.') ?></p>
                     <span class="card-action">Lihat detail & persyaratan <?= kiosk_icon('arrow') ?></span>

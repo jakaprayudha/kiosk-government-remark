@@ -1,5 +1,6 @@
 import QRCode from 'qrcode';
 import jsQR from 'jsqr';
+import { faceCrop } from './face-crop.mjs';
 
 const message = document.querySelector('.service-actions .device-message');
 document.querySelectorAll('canvas[data-qr]').forEach(async (canvas) => {
@@ -31,6 +32,8 @@ let scannerTimer = null;
 let pendingPhoto = null;
 const photos = new Map();
 const video = document.querySelector('#document-camera');
+const cameraPreview = document.querySelector('#document-camera-preview');
+const faceGuide = document.querySelector('#face-guide');
 const cameraMessage = document.querySelector('#camera-message');
 const scannerVideo = document.querySelector('#qr-camera');
 const scannerPreview = document.querySelector('#qr-scanner-preview');
@@ -39,10 +42,27 @@ const form = document.querySelector('#submission-form');
 let cameraGeneration = 0;
 let scannerGeneration = 0;
 
+function updateFaceGuide() {
+    if (!video?.videoWidth || !video.videoHeight || !cameraPreview) return;
+    cameraPreview.style.aspectRatio = `${video.videoWidth} / ${video.videoHeight}`;
+    const isFace = document.querySelector('#photo-requirement')?.value === 'face';
+    faceGuide.hidden = !isFace;
+    if (isFace) {
+        const crop = faceCrop(video.videoWidth, video.videoHeight);
+        faceGuide.style.left = `${crop.x / video.videoWidth * 100}%`;
+        faceGuide.style.top = `${crop.y / video.videoHeight * 100}%`;
+        faceGuide.style.width = `${crop.width / video.videoWidth * 100}%`;
+        faceGuide.style.height = `${crop.height / video.videoHeight * 100}%`;
+    }
+}
+video?.addEventListener('resize', updateFaceGuide);
+
 function stopCamera() {
     cameraGeneration += 1;
     cameraStream?.getTracks().forEach((track) => track.stop());
     cameraStream = null;
+    if (cameraPreview) cameraPreview.hidden = true;
+    if (faceGuide) faceGuide.hidden = true;
     if (video) {
         video.srcObject = null;
         video.hidden = true;
@@ -91,9 +111,11 @@ document.querySelector('#start-camera')?.addEventListener('click', async () => {
         video.hidden = false;
         await video.play();
         if (generation !== cameraGeneration) return;
+        updateFaceGuide();
+        cameraPreview.hidden = false;
         document.querySelector('#capture-photo').hidden = false;
         document.querySelector('#stop-camera').hidden = false;
-        cameraMessage.textContent = isFace ? 'Posisikan wajah pada kamera, lalu Ambil foto. Untuk DEMO hanya gunakan foto contoh.' : 'Posisikan dokumen, pastikan terbaca, lalu Ambil foto. Jangan gunakan identitas asli untuk DEMO.';
+        cameraMessage.textContent = isFace ? 'Posisikan seluruh wajah di dalam oval hijau. Oval hanya panduan; foto disimpan persegi panjang 3:4 yang membingkai oval, tanpa garis hijau. Lalu pilih Ambil foto. Untuk DEMO hanya gunakan foto contoh.' : 'Posisikan dokumen, pastikan terbaca, lalu Ambil foto. Jangan gunakan identitas asli untuk DEMO.';
     } catch (error) {
         if (generation !== cameraGeneration) return;
         stopCamera();
@@ -117,10 +139,14 @@ document.querySelector('#capture-photo')?.addEventListener('click', async () => 
         return;
     }
     const canvas = document.createElement('canvas');
-    const ratio = Math.min(1, 1600 / video.videoWidth, 1600 / video.videoHeight);
-    canvas.width = Math.round(video.videoWidth * ratio);
-    canvas.height = Math.round(video.videoHeight * ratio);
-    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+    const isFace = document.querySelector('#photo-requirement').value === 'face';
+    const crop = isFace ? faceCrop(video.videoWidth, video.videoHeight)
+        : { x: 0, y: 0, width: video.videoWidth, height: video.videoHeight };
+    const ratio = Math.min(1, 1600 / crop.width, 1600 / crop.height);
+    canvas.width = Math.round(crop.width * ratio);
+    canvas.height = Math.round(crop.height * ratio);
+    const context = canvas.getContext('2d');
+    context.drawImage(video, crop.x, crop.y, crop.width, crop.height, 0, 0, canvas.width, canvas.height);
     const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.85));
     if (generation !== cameraGeneration) return;
     if (!blob || blob.size > 2 * 1024 * 1024) {
@@ -133,7 +159,7 @@ document.querySelector('#capture-photo')?.addEventListener('click', async () => 
     const preview = document.querySelector('#capture-preview');
     preview.querySelector('img').src = pendingPhoto.url;
     preview.hidden = false;
-    cameraMessage.textContent = 'Periksa keterbacaan foto. Pilih Gunakan foto atau Ulangi.';
+    cameraMessage.textContent = isFace ? 'Ini hasil foto persegi panjang yang membingkai panduan oval, tanpa garis hijau atau sudut putih. Pastikan wajah utuh dan jelas, lalu pilih Gunakan foto atau Ulangi.' : 'Periksa keterbacaan foto. Pilih Gunakan foto atau Ulangi.';
 });
 document.querySelector('#retake-photo')?.addEventListener('click', () => {
     if (pendingPhoto) URL.revokeObjectURL(pendingPhoto.url);

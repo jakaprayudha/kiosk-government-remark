@@ -123,6 +123,7 @@ ob_start();
 require dirname(__DIR__) . '/app/views/public-submissions.php';
 $html = ob_get_clean();
 foreach (['name="nik"', 'name="birth_date"', 'value="face"', 'Keyboard layar sentuh'] as $text) check_submission(str_contains($html, $text), 'Form identitas/wajah/keyboard hilang: ' . $text);
+foreach (['id="document-camera-preview"', 'id="face-guide"', 'class="face-guide" hidden aria-hidden="true"'] as $text) check_submission(str_contains($html, $text), 'Panduan foto wajah hilang: ' . $text);
 $transactionService = $service;
 ob_start();
 require dirname(__DIR__) . '/app/views/public-submissions.php';

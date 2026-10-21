@@ -2,7 +2,7 @@
 <?php if (isset($_GET['saved'])): ?><p class="admin-success" role="status">Pengaturan tersimpan.</p><?php endif; ?>
 <section class="panel admin-detail">
     <h2>Pengaturan transaksi per layanan</h2>
-    <p>Aktifkan pengajuan hanya untuk layanan yang berwenang diproses kecamatan. Minta data minimum dan tetapkan retensi sesuai kebijakan. CRUD konten layanan/kategori/persyaratan tetap menyusul.</p>
+    <p>Aktifkan pengajuan hanya untuk layanan yang berwenang diproses kecamatan. Minta data minimum dan tetapkan retensi sesuai kebijakan. Kategori dapat dikelola di <a href="dashboard.php?module=categories">Kategori layanan</a>; CRUD konten layanan/persyaratan tetap menyusul.</p>
     <?php if ($configuredServices === []): ?><p>Belum ada layanan. Isi data resmi melalui SQLite atau jalankan seed DEMO untuk pengujian.</p><?php endif; ?>
     <?php foreach ($configuredServices as $configured): ?>
         <details class="service-setting"><summary><?= escape($configured['name']) ?></summary>

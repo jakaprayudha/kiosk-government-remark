@@ -13,6 +13,7 @@ if (!is_string($module) || !isset($navigation[$module])) {
 }
 
 $page = $navigation[$module];
+if ($module === 'categories') require dirname(__DIR__, 2) . '/app/admin-categories-controller.php';
 if ($module === 'submissions') require dirname(__DIR__, 2) . '/app/admin-submissions-controller.php';
 if ($module === 'complaints') require dirname(__DIR__, 2) . '/app/admin-complaints-controller.php';
 if ($module === 'queues') require dirname(__DIR__, 2) . '/app/admin-queues-controller.php';
@@ -40,7 +41,8 @@ if ($module === 'dashboard') {
 $now = new DateTimeImmutable('now', new DateTimeZone('Asia/Jakarta'));
 $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => 'Reset password',
     'service_settings' => 'Pengaturan layanan', 'submission_status' => 'Status pengajuan',
-    'document_guide_saved' => 'Persyaratan & biaya', 'complaint_status' => 'Tindak lanjut pengaduan', 'queue_update' => 'Antrean DEMO'];
+    'document_guide_saved' => 'Persyaratan & biaya', 'complaint_status' => 'Tindak lanjut pengaduan', 'queue_update' => 'Antrean DEMO',
+    'category_saved' => 'Kategori disimpan', 'category_deleted' => 'Kategori dihapus'];
 ?>
 <!doctype html>
 <html lang="id">
@@ -49,7 +51,11 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f5f7fb">
     <title><?= escape($page['label']) ?> — Admin KIOSK Kecamatan</title>
-    <link rel="stylesheet" href="../assets/css/admin.css">
+    <?php if ($module === 'categories'): ?>
+        <link rel="stylesheet" href="../assets/css/admin-categories.css?v=<?= filemtime(dirname(__DIR__) . '/assets/css/admin-categories.css') ?>">
+        <script src="../assets/js/admin-categories.js?v=<?= filemtime(dirname(__DIR__) . '/assets/js/admin-categories.js') ?>" defer></script>
+    <?php endif; ?>
+    <link rel="stylesheet" href="../assets/css/admin.css?v=<?= filemtime(dirname(__DIR__) . '/assets/css/admin.css') ?>">
     <script src="../assets/js/admin.js" defer></script>
 </head>
 <body>
@@ -72,7 +78,7 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
                    <?= $module === $key ? 'aria-current="page"' : '' ?>>
                     <?= admin_icon($item['icon']) ?>
                     <span><?= escape($item['label']) ?></span>
-                    <?php if (!in_array($key, ['dashboard', 'submissions', 'complaints', 'queues', 'services', 'document-guides'], true)): ?><span class="planned-dot" title="Modul belum tersedia"><span class="sr-only">Belum tersedia</span></span><?php endif; ?>
+                    <?php if (!in_array($key, ['dashboard', 'categories', 'submissions', 'complaints', 'queues', 'services', 'document-guides'], true)): ?><span class="planned-dot" title="Modul belum tersedia"><span class="sr-only">Belum tersedia</span></span><?php endif; ?>
                 </a>
             <?php endforeach; ?>
         </nav>
@@ -154,11 +160,13 @@ $actionLabels = ['login' => 'Login', 'logout' => 'Logout', 'password_reset' => '
                 <section class="panel modules-panel">
                     <div class="panel-heading"><div><h2>Ruang pengelolaan KIOSK</h2><p>Kelola referensi dokumen dan pengaturan transaksi. Modul lainnya menyusul.</p></div></div>
                     <div class="module-grid">
-                        <?php foreach (['document-guides', 'services', 'announcements', 'office', 'queues'] as $key): ?>
-                            <a class="module-card" href="dashboard.php?module=<?= escape($key) ?>"><span class="icon-box blue"><?= admin_icon($navigation[$key]['icon']) ?></span><h3><?= escape($navigation[$key]['label']) ?></h3><p><?= escape($navigation[$key]['description']) ?>                            </p><span class="module-link"><?= in_array($key, ['document-guides', 'services', 'queues'], true) ? 'Buka pengelolaan' : 'Lihat rencana modul' ?> <?= admin_icon('arrow') ?></span></a>
+                        <?php foreach (['categories', 'document-guides', 'services', 'announcements', 'office', 'queues'] as $key): ?>
+                            <a class="module-card" href="dashboard.php?module=<?= escape($key) ?>"><span class="icon-box blue"><?= admin_icon($navigation[$key]['icon']) ?></span><h3><?= escape($navigation[$key]['label']) ?></h3><p><?= escape($navigation[$key]['description']) ?>                            </p><span class="module-link"><?= in_array($key, ['categories', 'document-guides', 'services', 'queues'], true) ? 'Buka pengelolaan' : 'Lihat rencana modul' ?> <?= admin_icon('arrow') ?></span></a>
                         <?php endforeach; ?>
                     </div>
                 </section>
+            <?php elseif ($module === 'categories'): ?>
+                <?php require dirname(__DIR__, 2) . '/app/views/admin-categories.php'; ?>
             <?php elseif ($module === 'submissions'): ?>
                 <?php require dirname(__DIR__, 2) . '/app/views/admin-submissions.php'; ?>
             <?php elseif ($module === 'complaints'): ?>

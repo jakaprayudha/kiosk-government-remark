@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__ . '/service-categories.php';
 
 function public_service_catalog(PDO $pdo, string $today, string $category = '', ?int $serviceId = null): array
 {
@@ -10,7 +11,8 @@ function public_service_catalog(PDO $pdo, string $today, string $category = '', 
                    services.accepts_submissions, services.requires_name, services.requires_contact,
                    services.camera_enabled, services.retention_days, services.is_demo,
                    services.requires_nik, services.requires_birth_date, services.requires_face,
-                   service_categories.name AS category_name, service_categories.slug AS category_slug
+                   service_categories.name AS category_name, service_categories.slug AS category_slug,
+                   service_categories.description AS category_description, service_categories.icon AS category_icon
             FROM services
             JOIN service_categories ON service_categories.id = services.category_id
             WHERE services.is_published = 1 AND service_categories.is_active = 1

@@ -3,9 +3,10 @@
   "private": true,
   "scripts": {
     "build": "node resources/js/build.mjs",
-    "test": "node tests/qr.cjs"
+    "test": "node tests/qr.cjs && node tests/face-crop.mjs"
   },
   "dependencies": {
+    "simple-datatables": "^10.0.0",
     "leaflet": "^1.9.4",
     "jsqr": "^1.4.0",
     "qrcode": "^1.5.4"
