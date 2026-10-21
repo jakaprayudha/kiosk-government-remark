@@ -192,6 +192,8 @@ function kiosk_icon(string $name): string
                 </div>
             </section>
             <aside class="public-notice"><?= kiosk_icon('help') ?><p><strong>Informasi untuk Anda</strong> Katalog menampilkan layanan yang dipublikasikan pengelola. Pengajuan tersedia sesuai pengaturan layanan; data DEMO hanya untuk simulasi. Surat final dan nomor pengambilan tersedia setelah layanan diselesaikan admin. Antrean dan janji lintas instansi hanya simulasi lokal, bukan reservasi resmi.</p></aside>
+        <?php elseif ($selected === 'bantuan'): ?>
+            <?php require dirname(__DIR__) . '/app/views/public-help.php'; ?>
         <?php elseif ($selected === 'antrean'): ?>
             <?php require dirname(__DIR__) . '/app/views/public-queues.php'; ?>
         <?php elseif ($selected === 'pengaduan'): ?>

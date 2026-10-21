@@ -323,6 +323,12 @@ Bukti/riwayat dapat dicek sampai **30 hari setelah akhir tanggal layanan WIB**. 
 
 **Semua nomor dan janji tetap DEMO meskipun nama master diedit**, tidak berlaku pada Disdukcapil, fasilitas kesehatan, atau dinas sebenarnya. Tidak ada API antrean resmi, konfirmasi instansi, jaminan waktu panggilan, triase medis, SMS/email, QR check-in, atau pembayaran. Untuk kondisi darurat jangan gunakan modul ini. Integrasi resmi dan kesepakatan operasional diperlukan sebelum reservasi nyata dapat diterbitkan. Uji `php tests/queues.php` mencakup batas input, idempotensi, kuota penuh, konflik versi, rollback, pembatalan/nomor, instansi nonaktif, tanggal, retensi, privasi, dan kompetisi dua proses.
 
+### Bantuan penggunaan untuk masyarakat
+
+`kiosk.php?menu=bantuan` berisi panduan bahasa sederhana tanpa login: tiga langkah memulai, cara memakai keyboard layar sentuh/keyboard perangkat dan Teks besar, pilihan menu sesuai kebutuhan, serta pembedaan kode pengajuan, pengaduan (`AD-`) dan antrean (`AN-`). Pertanyaan dapat dibuka/ditutup melalui sentuhan atau keyboard memakai elemen HTML `details`/`summary`, tanpa JavaScript tambahan atau database. Tautan topik membantu pengguna menuju bagian yang diperlukan.
+
+Panduan kendala mencakup scan QR kamera/USB, foto pengajuan, cetak bukti/PDF, PIN salah/hilang, koneksi/pengiriman belum terkonfirmasi, surat/tanggapan belum tersedia, arti DEMO, dan peringatan sesi tidak aktif. Penutup mengingatkan pengguna mengambil kertas, menutup tab PDF, mengamankan file unduhan, dan menekan Selesai & bersihkan sesi. Halaman tidak mengklaim dapat memanggil petugas, memulihkan PIN, menjamin cetak fisik, atau menghapus data transaksi tersimpan saat sesi berakhir. Uji konten dan tautan: `php tests/help.php`.
+
 ## 10. Tahapan implementasi
 
 1. **Fondasi:** skema/migrasi SQLite, login admin, kontrol peran, audit log, dan pengelolaan profil kantor.
