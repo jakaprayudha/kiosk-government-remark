@@ -1,6 +1,8 @@
 # Rancangan KIOSK Kecamatan
 
-Dokumen ini menjadi rancangan awal alur layanan, fitur, hak akses admin, kebutuhan teknis, dan basis data untuk KIOSK Kecamatan berbasis PHP, JavaScript, HTML, CSS, dan SQLite.
+Dokumen ini memuat alur layanan, fitur yang sudah diimplementasikan, hak akses admin, kebutuhan teknis, dan basis data KIOSK Kecamatan berbasis PHP, JavaScript, HTML, CSS, dan SQLite. Bagian tahapan implementasi dan kriteria keberhasilan merupakan arah pengembangan, bukan klaim seluruh integrasi sudah tersedia.
+
+Status dokumentasi diselaraskan pada 22 Oktober 2026. Fitur antrean masih DEMO lokal; transaksi lintas kecamatan masih bersama. Integrasi instansi, penugasan petugas, ekspor laporan, dan pengaturan timeout/retensi melalui UI belum tersedia.
 
 ## 1. Tujuan
 
@@ -11,19 +13,20 @@ Menyediakan titik layanan mandiri di kantor kecamatan agar masyarakat dapat mene
 | Peran | Hak akses |
 |---|---|
 | Masyarakat | Melihat informasi layanan, mencari persyaratan, membuat pengajuan/pengaduan, mengambil antrean, mencetak bukti, dan melacak status dengan kode tiket. Tidak perlu akun untuk penggunaan dasar. |
-| Admin | Masuk ke panel pengelolaan; mengelola master data; mengatur akun petugas; memproses pengajuan dan pengaduan; memperbarui status; melihat laporan dan audit aktivitas. |
-| Petugas (opsional) | Mengakses antrean dan pengajuan sesuai penugasan; memperbarui status operasional. Tidak dapat mengelola akun admin atau konfigurasi sistem. |
+| Admin pusat | Mengelola master bersama, akun admin kecamatan, profil/perangkat, pengajuan, pengaduan, antrean DEMO, laporan, audit, dan identitas global KIOSK. Akun memiliki `office_id NULL`. |
+| Admin kecamatan | Mengelola profil, desa dan sarana kecamatan sendiri. Tidak dapat mengakses modul pusat atau mengatur akun/perangkat. |
+| Petugas (rencana) | Nilai role `officer` tersedia pada skema, tetapi login panel dan workflow penugasan khusus petugas belum diimplementasikan. |
 
 ## 3. Menu KIOSK untuk masyarakat
 
-1. **Beranda** — pintasan layanan populer, jam layanan, pengumuman, pencarian, dan tombol bantuan.
+1. **Beranda** — pintasan menu, pengumuman aktif, identitas daerah/kecamatan, jam WIB, dan tombol bantuan.
 2. **Layanan administrasi** — daftar layanan, syarat, biaya (jika berlaku), estimasi waktu, lokasi, formulir, dan tautan kanal resmi.
 3. **Informasi kecamatan** — alamat, jam kerja, kontak, peta, daftar kelurahan/desa, dan fasilitas umum.
 4. **Pengajuan layanan** — formulir permintaan informasi/layanan yang memang dapat diproses kecamatan; menghasilkan kode tiket.
-5. **Cek status** — masukkan kode tiket dan verifikasi ringan untuk melihat status serta catatan tindak lanjut.
-6. **Pengaduan dan aspirasi** — kategori, uraian, lokasi, kontak opsional sesuai kebijakan, dan lampiran opsional.
-7. **Antrean dan janji layanan** — pilih layanan, ambil nomor antrean atau jadwal konsultasi jika operasional kecamatan mendukung.
-8. **Bantuan KIOSK** — panduan singkat, bahasa, aksesibilitas, dan tombol memanggil petugas.
+5. **Cek status** — masukkan/scan kode tiket dan PIN untuk melihat status, pesan publik, surat final dan nomor pengambilan jika tersedia.
+6. **Pengaduan dan aspirasi** — kategori, uraian, lokasi serta nama/kontak opsional; menghasilkan kode dan PIN. Lampiran pengaduan belum tersedia.
+7. **Antrean dan janji layanan** — simulasi DEMO pemesanan slot berkuota dan pengecekan menggunakan kode + PIN, bukan reservasi resmi instansi.
+8. **Bantuan KIOSK** — panduan penggunaan, kendala kamera/QR/cetak, privasi, dan aksesibilitas. Tidak memiliki tombol pemanggilan petugas atau pilihan multibahasa.
 
 > KIOSK menampilkan panduan dan mengarahkan pengguna ke kanal resmi untuk urusan yang diproses instansi lain (misalnya Dukcapil, bantuan sosial, pajak, atau pembayaran). Jangan menyatakan pengajuan berhasil ke instansi eksternal kecuali ada integrasi resmi.
 
@@ -31,21 +34,21 @@ Menyediakan titik layanan mandiri di kantor kecamatan agar masyarakat dapat mene
 
 ### A. Mencari informasi layanan
 
-`Beranda → pilih/cari layanan → detail layanan → lihat syarat, biaya, waktu, lokasi dan kanal pengurusan → cetak/scan QR atau kembali ke beranda`
+`Beranda → pilih layanan/kategori → detail layanan → lihat syarat, biaya, waktu, lokasi dan kanal pengurusan → ajukan jika diaktifkan atau kembali ke beranda`
 
 ### B. Mengirim permintaan layanan
 
-`Pilih layanan → baca pemberitahuan privasi dan persyaratan → isi data minimum → konfirmasi → simpan ke SQLite → sistem membuat kode tiket → tampilkan/cetak bukti → admin menerima item di daftar kerja`
+`Menu Pengajuan → pilih layanan yang menerima transaksi → baca privasi/persyaratan → isi identitas sesuai konfigurasi layanan → ambil foto wajah dan dokumen wajib → setujui pengiriman → simpan ke SQLite → simpan kode tiket + PIN → tampilkan/cetak bukti → admin memproses → cek status → unduh surat final dan lihat nomor pengambilan jika sudah selesai`
 
-Status yang disarankan: `Baru → Ditinjau → Perlu informasi` (opsional) `→ Diproses → Selesai` atau `Ditolak`. Status `Perlu informasi` dan `Ditolak` harus menyertakan alasan yang dapat dipahami.
+Status mengikuti transisi yang diizinkan server: `Baru → Ditinjau → Diproses → Selesai`, dengan cabang `Perlu informasi` atau `Ditolak`. Admin mengisi pesan publik dan catatan internal secara terpisah; penyelesaian pengajuan memerlukan surat final PDF dan konfirmasi petugas. Rincian transisi dan konfigurasi layanan dijelaskan pada bagian pengajuan.
 
 ### C. Mengirim pengaduan/aspirasi
 
-`Pilih kategori → isi uraian dan lokasi → lampirkan foto bila perlu → pilih apakah kontak akan disertakan → konfirmasi → kode tiket → admin memverifikasi dan menugaskan → status tindak lanjut diperbarui → masyarakat mengecek dengan kode tiket`
+`Pilih pengaduan/aspirasi dan kategori → isi judul, uraian, lokasi → sertakan nama/kontak bila diinginkan → persetujuan dan kirim → simpan kode AD- dan PIN → admin memeriksa serta mengisi tanggapan → masyarakat mengecek dengan kode + PIN`. Tidak ada penugasan petugas atau unggah lampiran pengaduan.
 
 ### D. Mengambil antrean
 
-`Pilih layanan → lihat perkiraan antrean → ambil nomor → cetak/lihat nomor dan QR → layar menampilkan cara menunggu/panggilan`. Admin/petugas memanggil dan menandai selesai atau tidak hadir.
+`Pilih instansi dan layanan DEMO → pilih slot yang masih terbuka/berkuota → pesan → simpan nomor, kode AN- dan PIN → cetak bukti/cek status`. Admin pusat dapat memanggil dan menandai selesai/tidak hadir. Tidak ada jaminan waktu tunggu atau panggilan instansi resmi.
 
 ### E. Mengakhiri sesi KIOSK
 
@@ -54,14 +57,17 @@ Setelah beberapa saat tidak ada aktivitas, sistem menampilkan konfirmasi lalu ke
 ## 5. Alur kerja admin
 
 1. Admin masuk melalui halaman terpisah dengan akun aktif.
-2. Dashboard menampilkan jumlah pengajuan per status, antrean hari ini, dan pengaduan baru.
-3. Admin mengelola **master data**: kategori, layanan, persyaratan, informasi kantor, pengumuman, jadwal/kuota antrean, serta template pesan.
-4. Admin membuka item masuk, memeriksa data, menetapkan petugas bila fitur penugasan dipakai, lalu memperbarui status dan catatan.
+2. Admin pusat melihat ringkasan pengajuan, audit terakhir dan rekap login/perangkat KIOSK per kecamatan. Admin kecamatan diarahkan ke profil wilayahnya, bukan dashboard pusat.
+3. Admin pusat mengelola **master data**: kategori, layanan, persyaratan/biaya, profil kecamatan/desa/sarana, pengumuman, dan jadwal/kuota antrean DEMO.
+4. Admin pusat membuka pengajuan/pengaduan masuk, memeriksa data, lalu memperbarui status dan pesan. Filter status langsung memuat ulang daftar; tombol Periksa membuka detail. Penyelesaian pengajuan mencakup unggah PDF final dan nomor pengambilan.
 5. Perubahan status disimpan pada riwayat status; masyarakat dapat melihat status publik tanpa melihat catatan internal.
-6. Admin melihat laporan berdasarkan periode, jenis layanan, status, dan waktu penyelesaian; ekspor hanya untuk kebutuhan yang berwenang.
-7. Aktivitas penting dicatat pada audit log. Admin dapat menonaktifkan akun petugas dan mengubah kata sandi.
+6. Admin pusat melihat laporan periode WIB: jumlah transaksi dan status terkini, serta pengajuan per layanan. Belum ada ekspor, metrik durasi penyelesaian, atau pemisahan transaksi per kecamatan.
+7. Admin pusat membuat akun admin kecamatan, mengganti password, dan mengaktifkan/menonaktifkan akses. Audit aktivitas dapat dibaca dan difilter tanpa fasilitas edit/hapus.
+8. Pada browser KIOSK, admin pusat menetapkan perangkat ke kecamatan, memeriksa tampilan publik, lalu logout. Nama kecamatan mengikuti perangkat; logo/nama daerah dan pesan global dikelola di Pengaturan KIOSK.
 
 Menu `admin/dashboard.php?module=settings` khusus admin pusat mengelola identitas global: nama daerah, judul aplikasi, tagline beranda, footer, serta logo PNG/JPEG/WebP maksimal 512 KB dan 2048 x 2048 piksel. Jalankan `php bin/migrate.php` untuk migrasi `016_kiosk_settings.sql`. Logo disimpan sebagai data gambar di SQLite (tidak mengeksekusi file unggahan); SVG tidak diterima. Kosongkan unggahan untuk mempertahankan logo atau centang hapus untuk kembali ke ikon bawaan. Perubahan menggunakan pemeriksaan versi dan audit atomik, lalu terlihat saat landing/KIOSK dimuat ulang. Nama kecamatan pada KIOSK otomatis mengikuti cookie perangkat aktif dan nama profilnya, bukan isian global atau parameter URL; perangkat belum ditetapkan tidak memakai kecamatan default. Pengaturan timeout, retensi, dan identitas surat/PDF tidak diubah oleh menu ini. Uji `php tests/settings.php`.
+
+Layout pengaturan memisahkan identitas/pesan dan area logo menjadi dua kolom pada desktop, lalu satu kolom pada layar kecil. Tagline/footer memakai textarea, logo memiliki preview/status kosong, informasi kecamatan terpisah, dan tombol Batal/Simpan rata kanan pada footer form. Perubahan layout tidak mengubah nilai tersimpan.
 
 Menu `admin/dashboard.php?module=audit` tersedia khusus admin pusat untuk membaca audit SQLite: waktu WIB, nama/username, aktivitas, objek/ID, dan ringkasan. Filter periode bawaan bulan berjalan (tanggal akhir inklusif), aktivitas, pencarian literal nama/username/ringkasan/jenis objek, urutan terbaru/terlama, dan pagination server 20 baris. Filter aktivitas/urutan langsung memuat ulang; pencarian menggunakan tombol Cari atau Enter. Nama/username mengikuti akun terkini; penghapusan akun tidak menghapus audit, tetapi identitas akun tidak lagi tersedia. Menu ini tidak menyediakan edit/hapus dan bukan pencatatan seluruh klik atau kunjungan publik. Tidak ada migrasi tambahan. Uji: `php tests/audit.php`.
 
@@ -72,17 +78,20 @@ Menu `admin/dashboard.php?module=audit` tersedia khusus admin pusat untuk membac
 - **Persyaratan:** nama dokumen, wajib/opsional, keterangan, urutan; dapat terkait ke layanan.
 - **Pengumuman:** judul, isi, tanggal mulai/akhir, prioritas, status publikasi.
 - **Profil kantor dan kontak:** nama kantor, alamat, jam layanan, telepon, email, tautan peta dan kanal resmi.
-- **Kategori pengaduan:** nama dan petunjuk penggunaan.
+- **Kategori pengaduan:** pilihan tetap dari aplikasi, belum ada CRUD kategori pengaduan.
 - **Antrean:** layanan yang menerima antrean, jam, kuota, tanggal tutup, loket.
-- **Pengguna internal:** nama, username, hash kata sandi, peran, status aktif, waktu login terakhir.
-- **Pengajuan dan pengaduan:** pencarian/filter, detail, penugasan, status, catatan publik dan internal terpisah.
-- **Laporan dan audit:** ringkasan operasional, histori perubahan, unduh laporan dengan pembatasan akses.
+- **Akun admin kecamatan:** nama, username, password hash, kecamatan tetap, status aktif dan penggantian password oleh pusat.
+- **Pengajuan dan pengaduan:** filter status, detail, pembaruan status, catatan publik dan internal terpisah; belum ada penugasan.
+- **Laporan dan audit:** ringkasan operasional, histori perubahan serta filter/pagination audit; belum ada unduh laporan.
+- **Pengaturan KIOSK:** logo, nama daerah, judul, tagline dan footer global; nama kecamatan otomatis dari perangkat.
 
 ## 7. Rancangan database SQLite
 
 Gunakan foreign key, indeks untuk kolom pencarian/status, waktu tersimpan dalam ISO-8601, dan migrasi skema bernomor. ID dapat berupa integer autoincrement; kode tiket publik dibuat acak dan tidak berurutan.
 
 ### Tabel inti
+
+Ringkasan kolom berikut bukan pengganti skema lengkap. File SQL pada `database/migrations/` menjadi acuan struktur aktual, constraint, indeks, dan kolom tambahan per fitur.
 
 | Tabel | Kolom utama |
 |---|---|
@@ -96,10 +105,12 @@ Gunakan foreign key, indeks untuk kolom pencarian/status, waktu tersimpan dalam 
 | `submissions` | `id`, `public_code` (unik), `kind`, `service_id` FK nullable, `category_id` FK nullable, `name` nullable, `contact` nullable, `description`, `location_text`, `status`, `assigned_to` FK nullable, `public_note`, `internal_note`, `created_at`, `updated_at`, `closed_at` |
 | `submission_events` | `id`, `submission_id` FK, `old_status`, `new_status`, `public_message`, `internal_note`, `changed_by` FK nullable, `created_at` |
 | `submission_attachments` | `id`, `submission_id` FK, `stored_name`, `original_name`, `mime_type`, `size_bytes`, `created_at` |
-| `queue_config` | `id`, `service_id` FK, `weekday`, `opens_at`, `closes_at`, `daily_quota`, `is_active` |
-| `queue_tickets` | `id`, `public_code` (unik), `service_id` FK, `queue_date`, `queue_number`, `status`, `called_at`, `served_at`, `created_at` |
+| `queue_agencies`, `queue_services`, `queue_slots` | Master instansi/layanan DEMO, tanggal dan jam slot, kuota, status aktif/terbuka, versi |
+| `queue_bookings`, `queue_booking_events` | Booking slot, nomor, kode publik, hash PIN, status, retensi dan riwayat perubahan |
 | `audit_logs` | `id`, `user_id` FK nullable, `action`, `entity_type`, `entity_id`, `summary`, `created_at` |
-| `settings` | `key` (PK), `value`, `updated_at`, `updated_by` FK nullable |
+| `office_profiles`, `office_villages`, `office_facilities` | Profil wilayah serta desa/sarana yang terkait melalui `office_id` |
+| `kiosk_devices` | Kecamatan, nama perangkat, hash token, status aktif, versi, waktu terakhir dibuka dan penghitung halaman |
+| `kiosk_settings` | Satu baris identitas global: `region_name`, `kiosk_title`, `tagline`, `footer_text`, `logo_data`, `version`, `updated_at` |
 
 Status awal `submissions`: `new`, `reviewing`, `needs_info`, `in_progress`, `completed`, `rejected`. Status tiket: `waiting`, `called`, `served`, `no_show`, `cancelled`.
 
@@ -108,7 +119,7 @@ Status awal `submissions`: `new`, `reviewing`, `needs_info`, `in_progress`, `com
 - Simpan kata sandi hanya dengan `password_hash()` dan verifikasi `password_verify()`.
 - Jangan simpan NIK, nomor KK, foto identitas, atau data sensitif kecuali benar-benar diperlukan dan dasar pengelolaannya jelas. KIOSK publik sebaiknya mengumpulkan data minimum.
 - Lampiran disimpan di direktori privat di luar web root; SQLite hanya menyimpan metadata dan nama file acak. Validasi ukuran, MIME, dan ekstensi; jangan menerima file executable.
-- Kode tiket harus cukup acak, tidak memuat data pribadi, dan cek status dapat meminta faktor verifikasi kedua (misalnya nomor kontak parsial/OTP) bila data yang ditampilkan sensitif.
+- Kode tiket dibuat acak dan tidak memuat data pribadi. Lookup pengajuan, pengaduan dan antrean menggunakan kode + PIN; PIN disimpan sebagai hash. Tidak ada OTP atau pengiriman SMS/email otomatis.
 - Terapkan masa retensi dan prosedur penghapusan/anonimisasi sesuai kebijakan instansi.
 - Catatan publik dan catatan internal dipisahkan. Jangan pernah menampilkan catatan internal ke masyarakat.
 
@@ -185,7 +196,7 @@ Halaman reset password meminta username dan kode pemulihan. Formulir admin mendu
 
 Setelah login, admin membuka `public/admin/dashboard.php`. Panel ini dirancang untuk laptop/desktop dengan sidebar, tabel aktivitas, serta navigasi keyboard dan mouse; tidak memerlukan touchscreen. Di layar kecil, tombol menu membuka sidebar.
 
-Dashboard membaca jumlah admin aktif, pengajuan baru, total pengajuan dalam retensi (termasuk DEMO), aktivitas hari ini (WIB), dan tujuh aktivitas audit terakhir langsung dari SQLite. Menu **Pengajuan layanan** aktif untuk pemeriksaan dan tindak lanjut; **Kategori layanan** menyediakan tambah/ubah/hapus kategori yang sinkron dengan katalog publik; **Layanan administrasi** menyediakan CRUD konten/persyaratan serta pengaturan transaksi per layanan; **Persyaratan & biaya** menyediakan tambah/edit/publikasi master referensi dokumen. **Pengaduan & aspirasi** menyediakan tindak lanjut laporan, dan **Antrean & jadwal** mengelola simulasi instansi/layanan/jadwal berkuota dan panggilan. Akun, laporan, audit lengkap, dan pengaturan umum masih menyusul.
+Dashboard membaca jumlah admin aktif, pengajuan baru, total pengajuan dalam retensi (termasuk DEMO), aktivitas hari ini (WIB), dan tujuh aktivitas audit terakhir langsung dari SQLite. Menu **Pengajuan layanan** aktif untuk pemeriksaan dan tindak lanjut; **Kategori layanan** menyediakan tambah/ubah/hapus kategori yang sinkron dengan katalog publik; **Layanan administrasi** menyediakan CRUD konten/persyaratan serta pengaturan transaksi per layanan; **Persyaratan & biaya** menyediakan tambah/edit/publikasi master referensi dokumen. **Pengaduan & aspirasi** menyediakan tindak lanjut laporan, dan **Antrean & jadwal** mengelola simulasi instansi/layanan/jadwal berkuota dan panggilan. **Pengumuman**, **Profil kecamatan**, **Akun & petugas**, **Laporan**, **Audit aktivitas**, dan **Pengaturan KIOSK** juga sudah aktif sesuai cakupan dan pembatasan yang dijelaskan dalam dokumen ini. Rekap kecamatan pada dashboard mencakup login dan pemuatan halaman KIOSK, bukan transaksi atau status online realtime.
 
 ### UI KIOSK publik
 
@@ -199,11 +210,11 @@ Setelah 120 detik tanpa aktivitas, dialog konfirmasi ditampilkan selama 20 detik
 
 ### Informasi kecamatan dan peta desa (SQLite)
 
-Buka `/kiosk.php?menu=kantor` untuk profil Kecamatan Sei Rampah, Kabupaten Serdang Bedagai, Sumatera Utara, serta kartu desa dan peta interaktif. Jalankan `php bin/seed-demo-office.php` untuk menerapkan migrasi `005_office_villages` dan memuat profil serta **17 desa contoh**. Seed SQL berada di `database/seeds/demo-sei-rampah.sql`, aman dijalankan ulang tanpa menggandakan atau menimpa perubahan.
+Buka `/kiosk.php?menu=kantor` untuk profil kecamatan yang ditetapkan pada browser, serta kartu desa dan peta interaktif. Data contoh tersedia untuk Kecamatan Sei Rampah, Kabupaten Serdang Bedagai, Sumatera Utara. Jalankan `php bin/seed-demo-office.php` untuk menerapkan migrasi dan memuat profil serta **17 desa contoh**, lalu tetapkan browser ke profil tersebut melalui admin pusat. Seed SQL berada di `database/seeds/demo-sei-rampah.sql`, aman dijalankan ulang tanpa menggandakan atau menimpa perubahan.
 
 - `office_profiles`: slug, nama kecamatan/kabupaten/provinsi, deskripsi, alamat, jam layanan, catatan kontak, pusat peta (latitude/longitude), URL rujukan, DEMO, publikasi, dan waktu perubahan.
 - `office_villages`: FK profil, slug unik per profil, nama desa, nama kepala desa, telepon desa (`phone`, migrasi `006_village_phone`), jumlah dan tahun penduduk, latitude/longitude, catatan koordinat, DEMO, publikasi, dan urutan. Jalankan `php bin/migrate.php` untuk menambah kolom telepon pada instalasi lama. Nomor contoh tidak direkayasa; telepon kosong ditampilkan sebagai belum tersedia pada kartu dan popup.
-- Hanya profil dan desa terpublikasi ditampilkan. Total penduduk dijumlahkan dari desa yang tampil, bukan seluruh database. Profil terpilih memakai slug `sei-rampah`.
+- Hanya profil dan desa terpublikasi ditampilkan. Total penduduk dijumlahkan dari desa yang tampil, bukan seluruh database. Profil mengikuti token perangkat aktif, bukan slug tetap atau parameter URL.
 
 Nama 17 desa merujuk [daftar wilayah Sei Rampah](https://id.wikipedia.org/wiki/Sei_Rampah,_Serdang_Bedagai), yang mencantumkan rujukan BPS. **Nama kades fiktif, populasi tahun 2026 dummy, koordinat desa titik perkiraan untuk visualisasi, alamat/jam kantor contoh**; semuanya bukan informasi pemerintah terverifikasi. Titik bukan lokasi kantor, pusat desa, batas administrasi, atau petunjuk navigasi. Pusat awal peta juga bukan penanda kantor terverifikasi. Ganti dengan data dan koordinat yang disahkan sebelum penggunaan operasional.
 
@@ -213,7 +224,7 @@ Permintaan tile secara khusus memakai `referrerPolicy: strict-origin-when-cross-
 
 Pemilih **Tampilan peta** menyediakan **Peta jalan — OpenStreetMap** (default) dan **Satelit — Esri World Imagery**. Satelit dimuat dari `services.arcgisonline.com` hanya saat dipilih; satu layer dasar aktif pada satu waktu, sementara marker dan popup desa tetap tersedia. Atribusi berganti sesuai penyedia. Kedua penyedia menerima IP, origin situs, dan area tile yang diminta. Citra satelit bukan realtime, bukan layer kemacetan, dan tidak menambahkan garis batas desa/bidang tanah; resolusi/usia citra bergantung wilayah. Penggunaan layanan Esri tunduk pada ketentuan [World Imagery](https://goto.arcgisonline.com/maps/World_Imagery); tinjau lisensi dan kapasitas layanan sebelum deployment produksi. Mengganti layer juga mengaktifkan kembali peta dasar jika sebelumnya dimatikan.
 
-CRUD profil/desa di panel admin **belum tersedia**. Pengelola teknis memperbarui kedua tabel lewat SQLite dengan `PRAGMA foreign_keys = ON`, transaksi, parameter terikat, dan pembaruan `updated_at`. Jangan menghapus label DEMO sebelum memverifikasi seluruh isi terkait, termasuk catatan koordinat. Perubahan terlihat setelah halaman dimuat ulang; seed tidak menimpa baris yang sudah ada. Bundel ulang aset dengan `npm run build`; lisensi Leaflet disertakan di `public/assets/js/office-map.LICENSE.txt`.
+CRUD profil/desa tersedia pada menu **Profil kecamatan**, dengan pembatasan wilayah untuk admin kecamatan. Gunakan panel admin untuk perubahan operasional. Jangan menghapus label DEMO sebelum memverifikasi seluruh isi terkait, termasuk catatan koordinat. Perubahan terlihat setelah halaman dimuat ulang; seed tidak menimpa baris yang sudah ada. Bundel ulang aset dengan `npm run build`; lisensi Leaflet disertakan di `public/assets/js/office-map.LICENSE.txt`.
 
 Uji tanpa mengubah database aplikasi: `php tests/office.php`.
 
@@ -223,7 +234,7 @@ Menu informasi kecamatan juga membaca `office_facilities` (migrasi `007_office_f
 
 Seed menyediakan **8 fasilitas rekaan**: satu puskesmas, dua SD, satu SMP, satu SMA, satu kantor pelayanan, satu pasar, dan satu lapangan olahraga. Nama dan koordinat bukan fasilitas nyata di Sei Rampah. Telepon tidak direkayasa; kosong ditampilkan belum tersedia. Jangan gunakan sebagai rujukan medis/darurat, pendaftaran sekolah atau navigasi.
 
-Marker desa tetap **lingkaran biru bernomor**; sarana memakai **kotak berwarna dengan kode**: kesehatan merah (KES), SD hijau, SMP ungu, SMA kuning tua, kantor teal (KTR), pasar oranye (PSR), olahraga merah muda (OR). Legenda ikut masuk modal fullscreen. Popup/kartu memuat nama, kategori, informasi, alamat, jam operasional, telepon dan koordinat. Tombol **Lihat semua titik** mencakup desa dan fasilitas; ID keduanya dipisahkan agar tidak tertukar. Mode jalan/satelit dan modal tetap dapat digunakan. CRUD admin sarana belum tersedia; pengelola teknis memperbarui SQLite dan memverifikasi data sebelum menghapus label DEMO.
+Marker desa tetap **lingkaran biru bernomor**; sarana memakai **kotak berwarna dengan kode**: kesehatan merah (KES), SD hijau, SMP ungu, SMA kuning tua, kantor teal (KTR), pasar oranye (PSR), olahraga merah muda (OR). Legenda ikut masuk modal fullscreen. Popup/kartu memuat nama, kategori, informasi, alamat, jam operasional, telepon dan koordinat. Tombol **Lihat semua titik** mencakup desa dan fasilitas; ID keduanya dipisahkan agar tidak tertukar. Mode jalan/satelit dan modal tetap dapat digunakan. CRUD sarana tersedia pada tab **Sarana & prasarana** di Profil kecamatan; verifikasi data sebelum menghapus label DEMO.
 
 Kontrol **Mode peta** berada di dalam peta di kiri atas, di bawah zoom **+ / -**. Tombol **Layar penuh** membuka dialog modal seluas viewport (bukan Fullscreen API browser), dengan tombol **Tutup peta** dan dukungan Escape. Instance peta yang sama dipindahkan sementara ke modal sehingga layer, titik, dan posisi tidak direset. Status pemuatan ikut tampil di modal; setelah ditutup, peta kembali ke halaman. Dialog konfirmasi idle tetap dapat tampil di atas modal peta dan pengakhiran sesi menutup modal.
 
