@@ -1,0 +1,19 @@
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    RewriteRule ^(app|bin|database|node_modules|resources|storage|tests)(?:/|$) - [F,L]
+    RewriteRule ^\.git(?:/|$) - [F,L]
+    RewriteRule ^\.gitignore$ - [F,L]
+    RewriteRule ^(composer|package)(?:\.[^/]+)?$ - [F,L]
+    RewriteRule ^readme\.md$ - [F,L]
+
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f [OR]
+    RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -d
+    RewriteRule ^(.*)$ public/$1 [L]
+
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^$ public/index.php [L]
+</IfModule>
